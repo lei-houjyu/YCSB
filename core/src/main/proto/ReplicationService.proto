@@ -1,11 +1,11 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "site.ycsb.db.rocksdb";
+option java_package = "site.ycsb";
 option java_outer_classname = "RS";
 option objc_class_prefix = "RTG";
 
-package site.ycsb.db.rocksdb;
+package site.ycsb;
 
 service ReplicationService {
   rpc send (stream Request) returns (stream Reply) {}

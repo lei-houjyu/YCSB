@@ -32,22 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.atomic.LongAccumulator;
-import java.util.concurrent.Semaphore;
-
-// import com.google.common.annotations.VisibleForTesting;
-// import com.google.protobuf.Message;
-// import io.grpc.Channel;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-// import io.grpc.Status;
-// import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
-import site.ycsb.db.rocksdb.ReplicationServiceGrpc.ReplicationServiceBlockingStub;
-import site.ycsb.db.rocksdb.ReplicationServiceGrpc.ReplicationServiceStub;
-
-// import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -57,14 +41,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * See {@code rocksdb/README.md} for details.
  */
 public class RocksDBClient extends DB {
-  // [Rubble]
-  private static final Semaphore LIMITER = new Semaphore(256);
-  private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
-  private final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:8980").usePlaintext().build();
-  private final ReplicationServiceStub asyncStub = ReplicationServiceGrpc.newStub(channel);
-  private final ReplicationServiceBlockingStub blockingStub = ReplicationServiceGrpc.newBlockingStub(channel);
-  // [Rubble]
-
   static final String PROPERTY_ROCKSDB_DIR = "rocksdb.dir";
   static final String PROPERTY_ROCKSDB_OPTIONS_FILE = "rocksdb.optionsfile";
   private static final String COLUMN_FAMILY_NAMES_FILENAME = "CF_NAMES";
@@ -202,13 +178,6 @@ public class RocksDBClient extends DB {
   public void cleanup() throws DBException {
     super.cleanup();
 
-    // [Rubble]
-    try {
-      channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-    } catch (Exception e) {
-      LOGGER.info("Failed to shutdown gRPC channle");
-    }
-    // [Rubble]
 
     synchronized (RocksDBClient.class) {
       try {
@@ -238,10 +207,6 @@ public class RocksDBClient extends DB {
         references--;
       }
     }
-  }
-
-  public int getOpsDone() {
-    return opsdone.intValue();
   }
 
   @Override
@@ -333,38 +298,9 @@ public class RocksDBClient extends DB {
       final ColumnFamilyHandle cf = COLUMN_FAMILIES.get(table).getHandle();
       rocksDb.put(cf, key.getBytes(UTF_8), serializeValues(values));
 
-      // [Rubble]: send this op to replicator
-      StreamObserver<Request> requestObserver = 
-          asyncStub.send(new StreamObserver<Reply>() {
-            @Override
-            public void onNext(Reply reply) {
-                opsdone.accumulate(1L);
-                // LOGGER.info(Thread.currentThread().getName() + " Status: " + 
-                //     reply.getStatus() + " Content: " + reply.getContent());
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                LOGGER.info("Encountered error in send");
-            }
-
-            @Override
-            public void onCompleted() {
-                // LOGGER.info("Finished");
-                LIMITER.release();
-            }
-          });
-      
-      String value = new String(serializeValues(values));
-      Request request = Request.newBuilder().addKey(key).addValue(value).build();
-      // LOGGER.info("Key: " + request.getKey(0) + " Value: " + request.getValue(0));
-      LIMITER.acquire();
-      requestObserver.onNext(request);
-      requestObserver.onCompleted();
-      // [Rubble]
 
       return Status.OK;
-    } catch(final RocksDBException | IOException | InterruptedException e) {
+    } catch(final RocksDBException | IOException e) {
       LOGGER.error(e.getMessage(), e);
       return Status.ERROR;
     }

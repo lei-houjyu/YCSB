@@ -22,9 +22,25 @@ import java.util.Map;
 import site.ycsb.measurements.Measurements;
 import org.apache.htrace.core.TraceScope;
 import org.apache.htrace.core.Tracer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.LongAccumulator;
+import java.nio.ByteBuffer;
+import java.nio.file.*;
+import java.io.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
+import site.ycsb.ReplicationServiceGrpc.ReplicationServiceBlockingStub;
+import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Wrapper around a "real" DB that measures latencies and counts return codes.
@@ -53,6 +69,15 @@ public class DBWrapper extends DB {
   private final String scopeStringScan;
   private final String scopeStringUpdate;
 
+  // [Rubble]
+  private static final Semaphore LIMITER = new Semaphore(256);
+  private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
+  private final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:8980").usePlaintext().build();
+  private final ReplicationServiceStub asyncStub = ReplicationServiceGrpc.newStub(channel);
+  private final ReplicationServiceBlockingStub blockingStub = ReplicationServiceGrpc.newBlockingStub(channel);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
+  // [Rubble]
+
   public DBWrapper(final DB db, final Tracer tracer) {
     this.db = db;
     measurements = Measurements.getMeasurements();
@@ -69,7 +94,7 @@ public class DBWrapper extends DB {
 
   // [Rubble]
   public int getOpsDone() {
-    return db.getOpsDone();
+    return opsdone.intValue();
   }
   // [Rubble]
 
@@ -123,6 +148,15 @@ public class DBWrapper extends DB {
     try (final TraceScope span = tracer.newScope(scopeStringCleanup)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
+
+      // [Rubble]
+      try {
+        channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+      } catch (Exception e) {
+        LOGGER.info("Failed to shutdown gRPC channle");
+      }
+      // [Rubble]
+
       db.cleanup();
       long en = System.nanoTime();
       measure("CLEANUP", Status.OK, ist, st, en);
@@ -230,6 +264,37 @@ public class DBWrapper extends DB {
     try (final TraceScope span = tracer.newScope(scopeStringInsert)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
+
+      // [Rubble]: send this op to replicator
+      try {
+        String value = new String(serializeValues(values));
+        StreamObserver<Request> requestObserver = 
+            asyncStub.send(new StreamObserver<Reply>() {
+              @Override
+              public void onNext(Reply reply) {
+                  opsdone.accumulate(1L);
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                  LOGGER.info("Encountered error in send");
+              }
+
+              @Override
+              public void onCompleted() {
+                  LIMITER.release();
+              }
+            });
+  
+        Request request = Request.newBuilder().addKey(key).addValue(value).build();
+        LIMITER.acquire();
+        requestObserver.onNext(request);
+        requestObserver.onCompleted();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      // [Rubble]
+
       Status res = db.insert(table, key, values);
       long en = System.nanoTime();
       measure("INSERT", res, ist, st, en);
@@ -254,6 +319,61 @@ public class DBWrapper extends DB {
       measure("DELETE", res, ist, st, en);
       measurements.reportStatus("DELETE", res);
       return res;
+    }
+  }
+
+  private Map<String, ByteIterator> deserializeValues(final byte[] values, final Set<String> fields,
+      final Map<String, ByteIterator> result) {
+    final ByteBuffer buf = ByteBuffer.allocate(4);
+
+    int offset = 0;
+    while(offset < values.length) {
+      buf.put(values, offset, 4);
+      buf.flip();
+      final int keyLen = buf.getInt();
+      buf.clear();
+      offset += 4;
+
+      final String key = new String(values, offset, keyLen);
+      offset += keyLen;
+
+      buf.put(values, offset, 4);
+      buf.flip();
+      final int valueLen = buf.getInt();
+      buf.clear();
+      offset += 4;
+
+      if(fields == null || fields.contains(key)) {
+        result.put(key, new ByteArrayByteIterator(values, offset, valueLen));
+      }
+
+      offset += valueLen;
+    }
+
+    return result;
+  }
+
+  private byte[] serializeValues(final Map<String, ByteIterator> values) throws IOException {
+    try(final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      final ByteBuffer buf = ByteBuffer.allocate(4);
+
+      for(final Map.Entry<String, ByteIterator> value : values.entrySet()) {
+        final byte[] keyBytes = value.getKey().getBytes(UTF_8);
+        final byte[] valueBytes = value.getValue().toArray();
+
+        buf.putInt(keyBytes.length);
+        baos.write(buf.array());
+        baos.write(keyBytes);
+
+        buf.clear();
+
+        buf.putInt(valueBytes.length);
+        baos.write(buf.array());
+        baos.write(valueBytes);
+
+        buf.clear();
+      }
+      return baos.toByteArray();
     }
   }
 }
