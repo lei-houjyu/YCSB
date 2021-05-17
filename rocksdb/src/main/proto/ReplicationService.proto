@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "site.ycsb.db.rocksdb";
+option java_outer_classname = "RS";
+option objc_class_prefix = "RTG";
+
+package site.ycsb.db.rocksdb;
+
+service ReplicationService {
+  rpc send (stream Request) returns (stream Reply) {}
+}
+
+message Request {
+    enum op_type {
+        READ   = 0;
+        INSERT = 1;
+        UPDATE = 2;
+    }
+    repeated op_type type  = 1;
+    repeated string  key   = 2;
+    repeated string  value = 3;
+}
+  
+message Reply {
+    string status = 1;
+    string content = 2;
+}

@@ -77,6 +77,12 @@ public abstract class DB {
   public void cleanup() throws DBException {
   }
 
+  // [Rubble]
+  public int getOpsDone() {
+    return 0;
+  }
+  // [Rubble]
+
   /**
    * Read a record from the database. Each field/value pair from the result will be stored in a HashMap.
    *

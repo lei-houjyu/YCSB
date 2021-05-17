@@ -1,2 +1,3 @@
 mvn -pl rocksdb -am clean package  -Dmaven.test.skip=true
 rm rocksdb/target/dependency/rocksdbjni-6.2.2.jar
+cp ~/my_rocksdb/java/target/rocksdbjni-6.14.0.jar rocksdb/target/dependency/

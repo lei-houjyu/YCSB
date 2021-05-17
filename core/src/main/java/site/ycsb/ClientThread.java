@@ -82,7 +82,9 @@ public class ClientThread implements Runnable {
   }
 
   public int getOpsDone() {
-    return opsdone;
+    // [Rubble]
+    return db.getOpsDone();
+    // [Rubble]
   }
 
   @Override
@@ -149,6 +151,13 @@ public class ClientThread implements Runnable {
 
     try {
       measurements.setIntendedStartTimeNs(0);
+      while (getOpsDone() < opcount) {
+        try {
+          Thread.sleep(1);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
       db.cleanup();
     } catch (DBException e) {
       e.printStackTrace();

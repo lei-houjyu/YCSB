@@ -86,6 +86,9 @@ elif [ "run" = "$1" ] ; then
 elif [ "shell" = "$1" ] ; then
   YCSB_COMMAND=
   YCSB_CLASS=site.ycsb.CommandLine
+elif [ "replicator" = "$1" ] ; then
+  YCSB_COMMAND=
+  YCSB_CLASS=site.ycsb.db.rocksdb.Replicator
 else
   echo "[ERROR] Found unknown command '$1'"
   echo "[ERROR] Expected one of 'load', 'run', or 'shell'. Exiting."
