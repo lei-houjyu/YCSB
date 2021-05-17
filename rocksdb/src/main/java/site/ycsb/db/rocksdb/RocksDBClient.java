@@ -58,6 +58,7 @@ public class RocksDBClient extends DB {
 
   @Override
   public void init() throws DBException {
+    LOGGER.info("RocksDBClient init()");
     synchronized(RocksDBClient.class) {
       if(rocksDb == null) {
         rocksDbDir = Paths.get(getProperties().getProperty(PROPERTY_ROCKSDB_DIR));
@@ -348,7 +349,7 @@ public class RocksDBClient extends DB {
     return cfNames;
   }
 
-  private Map<String, ByteIterator> deserializeValues(final byte[] values, final Set<String> fields,
+  public static Map<String, ByteIterator> deserializeValues(final byte[] values, final Set<String> fields,
       final Map<String, ByteIterator> result) {
     final ByteBuffer buf = ByteBuffer.allocate(4);
 

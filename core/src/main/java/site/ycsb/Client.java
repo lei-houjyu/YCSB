@@ -526,7 +526,7 @@ public final class Client {
     return null;
   }
 
-  private static Properties parseArguments(String[] args) {
+  public static Properties parseArguments(String[] args) {
     Properties props = new Properties();
     System.err.print("Command line:");
     for (String arg : args) {

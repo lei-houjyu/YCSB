@@ -12,12 +12,12 @@ service ReplicationService {
 }
 
 message Request {
-    enum op_type {
+    enum OpType {
         READ   = 0;
         INSERT = 1;
         UPDATE = 2;
     }
-    repeated op_type type  = 1;
+    repeated OpType type  = 1;
     repeated string  key   = 2;
     repeated string  value = 3;
 }

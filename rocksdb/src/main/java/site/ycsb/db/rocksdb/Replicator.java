@@ -1,7 +1,7 @@
 package site.ycsb.db.rocksdb;
 
 import site.ycsb.*;
-// import site.ycsb.Status;
+import site.ycsb.Status;
 // import net.jcip.annotations.GuardedBy;
 import org.rocksdb.*;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import java.io.IOException;
 // import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-// import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Replicator's implementation in Rubble.
@@ -35,9 +35,12 @@ import java.util.concurrent.TimeUnit;
  * @author Haoyu Li.
  */
 public class Replicator {
+  private static DB db;
+  private static Properties props;
   private final int port;
   private final Server server;
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
+  private static String table;
 
   public Replicator(int port) throws IOException {
     this(ServerBuilder.forPort(port), port);
@@ -46,6 +49,18 @@ public class Replicator {
   public Replicator(ServerBuilder<?> serverBuilder, int port) {
     this.port = port;
     this.server = serverBuilder.addService(new ReplicationService()).build();
+    this.table = props.getProperty("table", "usertable");
+    String dbname = props.getProperty("db", "site.ycsb.BasicDB");
+    try {
+      ClassLoader classLoader = DBFactory.class.getClassLoader();
+      System.out.println(dbname);
+      Class dbclass = classLoader.loadClass(dbname);
+      db = (DB) dbclass.newInstance();
+      db.setProperties(props);
+      db.init();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /** Start serving requests. */
@@ -87,6 +102,7 @@ public class Replicator {
    * Main method.  This comment makes the linter happy.
    */
   public static void main(String[] args) throws Exception {
+    props = Client.parseArguments(args);
     Replicator server = new Replicator(8980);
     server.start();
     server.blockUntilShutdown();
@@ -100,11 +116,36 @@ public class Replicator {
       return new StreamObserver<Request>() {
         @Override
         public void onNext(Request request) {
+          Request.OpType type = request.getType(0);
+          String key = request.getKey(0);
+          String value = null;
+          Status res = null;
+          Map<String, ByteIterator> values = new HashMap<>();
+          switch (type) {
+            case READ:
+              res = db.read(table, key, null, values);
+              break;
+
+            case INSERT:
+              value = request.getValue(0);
+              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
+              res = db.insert(table, key, values);
+              break;
+
+            case UPDATE:
+              value = request.getValue(0);
+              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
+              res = db.update(table, key, values);
+              break;
+        
+            default:
+              break;
+          }
+          
           Reply reply = Reply.newBuilder()
-                     .setStatus("OK")
-                     .setContent(request.getKeyCount() + " keys from " + request.getKey(0))
+                     .setStatus(res.getName())
+                     .setContent(res.getDescription())
                      .build();
-        //   LOGGER.info("Key: " + request.getKey(0) + " Value: " + request.getValue(0));
           responseObserver.onNext(reply);
         }
 

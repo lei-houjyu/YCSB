@@ -178,11 +178,39 @@ public class DBWrapper extends DB {
     try (final TraceScope span = tracer.newScope(scopeStringRead)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
-      Status res = db.read(table, key, fields, result);
-      long en = System.nanoTime();
-      measure("READ", res, ist, st, en);
-      measurements.reportStatus("READ", res);
-      return res;
+      // [Rubble]: send this op to replicator
+      try {
+        StreamObserver<Request> requestObserver = 
+            asyncStub.send(new StreamObserver<Reply>() {
+              @Override
+              public void onNext(Reply reply) {
+                  opsdone.accumulate(1L);
+                  Status res = new Status(reply.getStatus(), reply.getContent());
+                  long en = System.nanoTime();
+                  measure("READ", res, ist, st, en);
+                  measurements.reportStatus("READ", res);
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                  LOGGER.info("Encountered error in send");
+              }
+
+              @Override
+              public void onCompleted() {
+                  LIMITER.release();
+              }
+            });
+  
+        Request request = Request.newBuilder().addType(Request.OpType.READ).addKey(key).build();
+        LIMITER.acquire();
+        requestObserver.onNext(request);
+        requestObserver.onCompleted();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return Status.OK;
+      // [Rubble]
     }
   }
 
@@ -241,11 +269,44 @@ public class DBWrapper extends DB {
     try (final TraceScope span = tracer.newScope(scopeStringUpdate)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
-      Status res = db.update(table, key, values);
-      long en = System.nanoTime();
-      measure("UPDATE", res, ist, st, en);
-      measurements.reportStatus("UPDATE", res);
-      return res;
+      // [Rubble]: send this op to replicator
+      try {
+        String value = new String(serializeValues(values));
+        StreamObserver<Request> requestObserver = 
+            asyncStub.send(new StreamObserver<Reply>() {
+              @Override
+              public void onNext(Reply reply) {
+                  opsdone.accumulate(1L);
+                  Status res = new Status(reply.getStatus(), reply.getContent());
+                  long en = System.nanoTime();
+                  measure("UPDATE", res, ist, st, en);
+                  measurements.reportStatus("UPDATE", res);
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                  LOGGER.info("Encountered error in send");
+              }
+
+              @Override
+              public void onCompleted() {
+                  LIMITER.release();
+              }
+            });
+  
+        Request request = Request.newBuilder()
+            .addType(Request.OpType.UPDATE)
+            .addKey(key)
+            .addValue(value)
+            .build();
+        LIMITER.acquire();
+        requestObserver.onNext(request);
+        requestObserver.onCompleted();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return Status.OK;
+      // [Rubble]
     }
   }
 
@@ -273,6 +334,10 @@ public class DBWrapper extends DB {
               @Override
               public void onNext(Reply reply) {
                   opsdone.accumulate(1L);
+                  Status res = new Status(reply.getStatus(), reply.getContent());
+                  long en = System.nanoTime();
+                  measure("INSERT", res, ist, st, en);
+                  measurements.reportStatus("INSERT", res);
               }
 
               @Override
@@ -286,20 +351,19 @@ public class DBWrapper extends DB {
               }
             });
   
-        Request request = Request.newBuilder().addKey(key).addValue(value).build();
+        Request request = Request.newBuilder()
+            .addType(Request.OpType.INSERT)
+            .addKey(key)
+            .addValue(value)
+            .build();
         LIMITER.acquire();
         requestObserver.onNext(request);
         requestObserver.onCompleted();
       } catch (Exception e) {
         e.printStackTrace();
       }
+      return Status.OK;
       // [Rubble]
-
-      Status res = db.insert(table, key, values);
-      long en = System.nanoTime();
-      measure("INSERT", res, ist, st, en);
-      measurements.reportStatus("INSERT", res);
-      return res;
     }
   }
 
@@ -320,37 +384,6 @@ public class DBWrapper extends DB {
       measurements.reportStatus("DELETE", res);
       return res;
     }
-  }
-
-  private Map<String, ByteIterator> deserializeValues(final byte[] values, final Set<String> fields,
-      final Map<String, ByteIterator> result) {
-    final ByteBuffer buf = ByteBuffer.allocate(4);
-
-    int offset = 0;
-    while(offset < values.length) {
-      buf.put(values, offset, 4);
-      buf.flip();
-      final int keyLen = buf.getInt();
-      buf.clear();
-      offset += 4;
-
-      final String key = new String(values, offset, keyLen);
-      offset += keyLen;
-
-      buf.put(values, offset, 4);
-      buf.flip();
-      final int valueLen = buf.getInt();
-      buf.clear();
-      offset += 4;
-
-      if(fields == null || fields.contains(key)) {
-        result.put(key, new ByteArrayByteIterator(values, offset, valueLen));
-      }
-
-      offset += valueLen;
-    }
-
-    return result;
   }
 
   private byte[] serializeValues(final Map<String, ByteIterator> values) throws IOException {
