@@ -70,12 +70,16 @@ public class DBWrapper extends DB {
   private final String scopeStringUpdate;
 
   // [Rubble]
-  private static final Semaphore LIMITER = new Semaphore(256);
+  private static final Semaphore LIMITER = new Semaphore(512);
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:8980").usePlaintext().build();
   private final ReplicationServiceStub asyncStub = ReplicationServiceGrpc.newStub(channel);
   private final ReplicationServiceBlockingStub blockingStub = ReplicationServiceGrpc.newBlockingStub(channel);
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
+  private Request.OpType[] types = new Request.OpType[DB.BATCHSIZE];
+  private String[] keys = new String[DB.BATCHSIZE];
+  private String[] vals = new String[DB.BATCHSIZE];
+  private int batchsize = 0;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -163,6 +167,46 @@ public class DBWrapper extends DB {
     }
   }
 
+  // [Rubble]
+  public void sendBatch() throws Exception {
+    StreamObserver<Request> requestObserver = 
+        asyncStub.send(new StreamObserver<Reply>() {
+          @Override
+          public void onNext(Reply reply) {
+              opsdone.accumulate(DB.BATCHSIZE);
+              Status res = new Status(reply.getStatus(), reply.getContent());
+          }
+
+          @Override
+          public void onError(Throwable t) {
+              LOGGER.info("Encountered error in send");
+          }
+
+          @Override
+          public void onCompleted() {
+              LIMITER.release();
+          }
+        });
+
+    Request.Builder builder = Request.newBuilder();
+    
+    for (int i = 0; i < batchsize; i++) {
+      builder.addType(types[i]);
+      builder.addKey(keys[i]);
+      builder.addValue(vals[i]);
+    }
+
+    if (batchsize < DB.BATCHSIZE) {
+      builder.addKey("STOP");
+    }
+
+    LIMITER.acquire();
+    requestObserver.onNext(builder.build());
+    requestObserver.onCompleted();
+    batchsize = 0;
+  }
+  // [Rubble]
+
   /**
    * Read a record from the database. Each field/value pair from the result
    * will be stored in a HashMap.
@@ -180,36 +224,21 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        StreamObserver<Request> requestObserver = 
-            asyncStub.send(new StreamObserver<Reply>() {
-              @Override
-              public void onNext(Reply reply) {
-                  opsdone.accumulate(1L);
-                  Status res = new Status(reply.getStatus(), reply.getContent());
-                  long en = System.nanoTime();
-                  measure("READ", res, ist, st, en);
-                  measurements.reportStatus("READ", res);
-              }
-
-              @Override
-              public void onError(Throwable t) {
-                  LOGGER.info("Encountered error in send");
-              }
-
-              @Override
-              public void onCompleted() {
-                  LIMITER.release();
-              }
-            });
-  
-        Request request = Request.newBuilder().addType(Request.OpType.READ).addKey(key).build();
-        LIMITER.acquire();
-        requestObserver.onNext(request);
-        requestObserver.onCompleted();
+        types[batchsize] = Request.OpType.READ;
+        keys[batchsize] = key;
+        vals[batchsize] = "NULL";
+        batchsize++;
+        if (batchsize == DB.BATCHSIZE) {
+          sendBatch();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
-      return Status.OK;
+      long en = System.nanoTime();
+      Status res = Status.OK;
+      measure("READ", res, ist, st, en);
+      measurements.reportStatus("READ", res);
+      return res;
       // [Rubble]
     }
   }
@@ -271,41 +300,21 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        String value = new String(serializeValues(values));
-        StreamObserver<Request> requestObserver = 
-            asyncStub.send(new StreamObserver<Reply>() {
-              @Override
-              public void onNext(Reply reply) {
-                  opsdone.accumulate(1L);
-                  Status res = new Status(reply.getStatus(), reply.getContent());
-                  long en = System.nanoTime();
-                  measure("UPDATE", res, ist, st, en);
-                  measurements.reportStatus("UPDATE", res);
-              }
-
-              @Override
-              public void onError(Throwable t) {
-                  LOGGER.info("Encountered error in send");
-              }
-
-              @Override
-              public void onCompleted() {
-                  LIMITER.release();
-              }
-            });
-  
-        Request request = Request.newBuilder()
-            .addType(Request.OpType.UPDATE)
-            .addKey(key)
-            .addValue(value)
-            .build();
-        LIMITER.acquire();
-        requestObserver.onNext(request);
-        requestObserver.onCompleted();
+        types[batchsize] = Request.OpType.UPDATE;
+        keys[batchsize] = key;
+        vals[batchsize] = new String(serializeValues(values));
+        batchsize++;
+        if (batchsize == DB.BATCHSIZE) {
+          sendBatch();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
-      return Status.OK;
+      long en = System.nanoTime();
+      Status res = Status.OK;
+      measure("UPDATE", res, ist, st, en);
+      measurements.reportStatus("UPDATE", res);
+      return res;
       // [Rubble]
     }
   }
@@ -328,41 +337,21 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        String value = new String(serializeValues(values));
-        StreamObserver<Request> requestObserver = 
-            asyncStub.send(new StreamObserver<Reply>() {
-              @Override
-              public void onNext(Reply reply) {
-                  opsdone.accumulate(1L);
-                  Status res = new Status(reply.getStatus(), reply.getContent());
-                  long en = System.nanoTime();
-                  measure("INSERT", res, ist, st, en);
-                  measurements.reportStatus("INSERT", res);
-              }
-
-              @Override
-              public void onError(Throwable t) {
-                  LOGGER.info("Encountered error in send");
-              }
-
-              @Override
-              public void onCompleted() {
-                  LIMITER.release();
-              }
-            });
-  
-        Request request = Request.newBuilder()
-            .addType(Request.OpType.INSERT)
-            .addKey(key)
-            .addValue(value)
-            .build();
-        LIMITER.acquire();
-        requestObserver.onNext(request);
-        requestObserver.onCompleted();
+        types[batchsize] = Request.OpType.INSERT;
+        keys[batchsize] = key;
+        vals[batchsize] = new String(serializeValues(values));
+        batchsize++;
+        if (batchsize == DB.BATCHSIZE) {
+          sendBatch();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
-      return Status.OK;
+      long en = System.nanoTime();
+      Status res = Status.OK;
+      measure("INSERT", res, ist, st, en);
+      measurements.reportStatus("INSERT", res);
+      return res;
       // [Rubble]
     }
   }

@@ -91,6 +91,7 @@ public class ClientThread implements Runnable {
   public void run() {
     try {
       db.init();
+      System.out.println(db);
     } catch (DBException e) {
       e.printStackTrace();
       e.printStackTrace(System.out);
@@ -129,6 +130,12 @@ public class ClientThread implements Runnable {
 
           throttleNanos(startTimeNanos);
         }
+
+        // [Rubble]
+        if (opcount % DB.BATCHSIZE != 0) {
+          ((DBWrapper)db).sendBatch();
+        }
+        // [Rubble]
       } else {
         long startTimeNanos = System.nanoTime();
 
@@ -142,6 +149,11 @@ public class ClientThread implements Runnable {
 
           throttleNanos(startTimeNanos);
         }
+        // [Rubble]
+        if (opcount % DB.BATCHSIZE != 0) {
+          ((DBWrapper)db).sendBatch();
+        }
+        // [Rubble]
       }
     } catch (Exception e) {
       e.printStackTrace();

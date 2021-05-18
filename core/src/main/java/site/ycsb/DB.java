@@ -43,6 +43,10 @@ import java.util.Vector;
  * recommend you explain the semantics you chose when presenting performance results.
  */
 public abstract class DB {
+  // [Rubble]
+  public static final int BATCHSIZE = 1024;
+  // [Rubble]
+
   /**
    * Properties for configuring this DB.
    */

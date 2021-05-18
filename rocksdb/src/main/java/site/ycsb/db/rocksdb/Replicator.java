@@ -114,34 +114,47 @@ public class Replicator {
     @Override
     public StreamObserver<Request> send(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() {
-        @Override
-        public void onNext(Request request) {
-          Request.OpType type = request.getType(0);
-          String key = request.getKey(0);
+        public Status process(Request request, int i) {
+          Request.OpType type = request.getType(i);
+          String key = request.getKey(i);
           String value = null;
-          Status res = null;
           Map<String, ByteIterator> values = new HashMap<>();
           switch (type) {
             case READ:
-              res = db.read(table, key, null, values);
-              break;
+              return db.read(table, key, null, values);
 
             case INSERT:
-              value = request.getValue(0);
+              value = request.getValue(i);
               RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              res = db.insert(table, key, values);
-              break;
+              return db.insert(table, key, values);
 
             case UPDATE:
-              value = request.getValue(0);
+              value = request.getValue(i);
               RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              res = db.update(table, key, values);
-              break;
+              return db.update(table, key, values);
         
             default:
+              System.err.println("Unsupported op type!");
               break;
           }
-          
+
+          return Status.ERROR;
+        }
+
+        @Override
+        public void onNext(Request request) {
+          Status res = null;
+
+          for (int i = 0; i < DB.BATCHSIZE; i++) {
+            if (request.getKey(i).equals("STOP")) {
+              break;
+            }
+            res = process(request, i);
+            if (!res.isOk()) {
+              System.err.println("Some request failed!");
+            }
+          }
+
           Reply reply = Reply.newBuilder()
                      .setStatus(res.getName())
                      .setContent(res.getDescription())
