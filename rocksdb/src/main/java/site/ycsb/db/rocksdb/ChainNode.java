@@ -139,7 +139,7 @@ public class ChainNode {
 
           for (int i = 0; i < batchSize; i++) {
             Status res = processRead(request, i);
-            if (!res.isOk()) {
+            if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
             }
             builder.addStatus(res.getName());
@@ -198,7 +198,7 @@ public class ChainNode {
 
           for (int i = 0; i < batchSize; i++) {
             Status res = processWrite(request, i);
-            if (!res.isOk()) {
+            if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
             }
             builder.addStatus(res.getName());

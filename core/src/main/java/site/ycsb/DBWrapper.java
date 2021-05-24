@@ -183,7 +183,8 @@ public class DBWrapper extends DB {
         int batchSize = reply.getBatchSize();
         opsdone.accumulate(batchSize);
         for (int i = 0; i < batchSize; i++) {
-          if (!reply.getStatus(i).equals("OK")) {
+          String status = reply.getStatus(i);
+          if (!status.equals("OK") && !status.equals("NOT_FOUND")) {
             LOGGER.error(reply.getContent(i));
           }
         }
