@@ -1,76 +1,53 @@
 package site.ycsb.db.rocksdb;
 
-import site.ycsb.*;
-import site.ycsb.Status;
-// import net.jcip.annotations.GuardedBy;
-import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-// import java.nio.ByteBuffer;
-import java.nio.file.*;
-import java.util.*;
-// import java.util.concurrent.ConcurrentHashMap;
-// import java.util.concurrent.ConcurrentMap;
-// import java.util.concurrent.locks.Lock;
-// import java.util.concurrent.locks.ReentrantLock;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import java.io.IOException;
-// import java.net.URL;
-// import java.util.ArrayList;
-// import java.util.Collection;
-// import java.util.Collections;
-// import java.util.List;
-import java.util.concurrent.TimeUnit;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import site.ycsb.*;
+import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
+
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
 /**
- * Replicator's implementation in Rubble.
+ * Replicator in chain replication.
  *
  * @author Haoyu Li.
  */
 public class Replicator {
-  private static DB db;
   private static Properties props;
   private final int port;
   private final Server server;
+  private final ManagedChannel headChannel;
+  private final ManagedChannel tailChannel;
+  private final ReplicationServiceStub headStub;
+  private final ReplicationServiceStub tailStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
-  private static String table;
-
-  public Replicator(int port) throws IOException {
-    this(ServerBuilder.forPort(port), port);
-  }
   
-  public Replicator(ServerBuilder<?> serverBuilder, int port) {
-    this.port = port;
-    this.server = serverBuilder.addService(new ReplicationService()).build();
-    this.table = props.getProperty("table", "usertable");
-    String dbname = props.getProperty("db", "site.ycsb.BasicDB");
-    try {
-      ClassLoader classLoader = DBFactory.class.getClassLoader();
-      System.out.println(dbname);
-      Class dbclass = classLoader.loadClass(dbname);
-      db = (DB) dbclass.newInstance();
-      db.setProperties(props);
-      db.init();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  public Replicator() throws IOException {
+    String headNode = props.getProperty("head");
+    String tailNode = props.getProperty("tail");
+    this.port = Integer.parseInt(props.getProperty("port"));
+    this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
+    this.headChannel = ManagedChannelBuilder.forTarget(headNode).usePlaintext().build();
+    this.tailChannel = ManagedChannelBuilder.forTarget(tailNode).usePlaintext().build();
+    this.headStub = ReplicationServiceGrpc.newStub(this.headChannel);
+    this.tailStub = ReplicationServiceGrpc.newStub(this.tailChannel);
   }
 
-  /** Start serving requests. */
   public void start() throws IOException {
     server.start();
     LOGGER.info("Server started, listening on " + port);
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
         System.err.println("*** shutting down gRPC server since JVM is shutting down");
         try {
           Replicator.this.stop();
@@ -82,94 +59,119 @@ public class Replicator {
     });
   }
 
-  /** Stop serving requests and shutdown resources. */
   public void stop() throws InterruptedException {
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
     }
+    if (headChannel != null) {
+      headChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+    }
+    if (tailChannel != null) {
+      tailChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+    }
   }
 
-  /**
-   * Await termination on the main thread since the grpc library uses daemon threads.
-   */
   private void blockUntilShutdown() throws InterruptedException {
     if (server != null) {
       server.awaitTermination();
     }
   }
-
-  /**
-   * Main method.  This comment makes the linter happy.
-   */
+  
   public static void main(String[] args) throws Exception {
+    //LOGGER.info("Replicator started");
     props = Client.parseArguments(args);
-    Replicator server = new Replicator(8980);
+    Replicator server = new Replicator();
     server.start();
     server.blockUntilShutdown();
   }
 
-  private static class ReplicationService extends ReplicationServiceGrpc.ReplicationServiceImplBase {
+  private class ReplicationService extends ReplicationServiceGrpc.ReplicationServiceImplBase {
     ReplicationService() {}
 
     @Override
-    public StreamObserver<Request> send(final StreamObserver<Reply> responseObserver) {
+    public StreamObserver<Request> read(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() {
-        public Status process(Request request, int i) {
-          Request.OpType type = request.getType(i);
-          String key = request.getKey(i);
-          String value = null;
-          Map<String, ByteIterator> values = new HashMap<>();
-          switch (type) {
-            case READ:
-              return db.read(table, key, null, values);
+        private final StreamObserver<Request> tailObserver = 
+            tailStub.read(new StreamObserver<Reply>() {
+                @Override
+                public void onNext(Reply reply) {
+                  //LOGGER.info("receive read reply from tail " + reply.getStatus(0) + " " + reply.getContent(0));
+                  //LOGGER.info("reply to YCSB");
+                  responseObserver.onNext(reply);
+                }
 
-            case INSERT:
-              value = request.getValue(i);
-              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              return db.insert(table, key, values);
+                @Override
+                public void onError(Throwable t) {
+                  LOGGER.error("error in read", t);
+                }
 
-            case UPDATE:
-              value = request.getValue(i);
-              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              return db.update(table, key, values);
-        
-            default:
-              System.err.println("Unsupported op type!");
-              break;
-          }
-
-          return Status.ERROR;
-        }
-
+                @Override
+                public void onCompleted() {
+                  //LOGGER.info("onCompleted from tail");
+                  //LOGGER.info("onCompleted to YCSB");
+                  responseObserver.onCompleted();
+                }
+            });
+            
         @Override
         public void onNext(Request request) {
-          Status res = null;
-
-          for (int i = 0; i < DB.BATCHSIZE; i++) {
-            if (request.getKey(i).equals("STOP")) {
-              break;
-            }
-            res = process(request, i);
-            if (!res.isOk()) {
-              System.err.println("Some request failed!");
-            }
-          }
-
-          Reply reply = Reply.newBuilder()
-                     .setStatus(res.getName())
-                     .setContent(res.getDescription())
-                     .build();
-          responseObserver.onNext(reply);
+          //LOGGER.info("send read request to tail");
+          tailObserver.onNext(request);
         }
 
         @Override
         public void onError(Throwable t) {
-          LOGGER.info("Encountered error in send");
+          LOGGER.error("Encountered error in read", t);
         }
 
         @Override
         public void onCompleted() {
-          responseObserver.onCompleted();
+          //LOGGER.info("onCompleted to tail");
+          tailObserver.onCompleted();
+        }
+      };
+    }
+
+    @Override
+    public StreamObserver<Request> write(final StreamObserver<Reply> responseObserver) {
+      return new StreamObserver<Request>() {
+        private final StreamObserver<Request> headObserver = 
+            headStub.write(new StreamObserver<Reply>() {
+                @Override
+                public void onNext(Reply reply) {
+                  //LOGGER.info("receive write reply from tail " + reply.getStatus(0) + " " + reply.getContent(0));
+                  //LOGGER.info("reply to YCSB");
+                  responseObserver.onNext(reply);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                  LOGGER.error("error in write", t);
+                }
+
+                @Override
+                public void onCompleted() {
+                  //LOGGER.info("onCompleted from tail");
+                  //LOGGER.info("onCompleted to YCSB");
+                  responseObserver.onCompleted();
+                }
+            });
+
+        @Override
+        public void onNext(Request request) {
+          //LOGGER.info("send write request to head");
+          headObserver.onNext(request);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          LOGGER.error("Encountered error in write", t);
+        }
+
+        @Override
+        public void onCompleted() {
+          //LOGGER.info("onCompleted to head");
+          headObserver.onCompleted();
         }
       };
     }

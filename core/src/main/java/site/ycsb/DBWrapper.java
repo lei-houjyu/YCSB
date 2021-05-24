@@ -37,7 +37,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import site.ycsb.ReplicationServiceGrpc.ReplicationServiceBlockingStub;
 import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
 
 import java.util.concurrent.TimeUnit;
@@ -72,14 +71,16 @@ public class DBWrapper extends DB {
   // [Rubble]
   private static final Semaphore LIMITER = new Semaphore(512);
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
-  private final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:8980").usePlaintext().build();
-  private final ReplicationServiceStub asyncStub = ReplicationServiceGrpc.newStub(channel);
-  private final ReplicationServiceBlockingStub blockingStub = ReplicationServiceGrpc.newBlockingStub(channel);
+  private ManagedChannel channel;
+  private ReplicationServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
-  private Request.OpType[] types = new Request.OpType[DB.BATCHSIZE];
-  private String[] keys = new String[DB.BATCHSIZE];
-  private String[] vals = new String[DB.BATCHSIZE];
-  private int batchsize = 0;
+  private Request.OpType[] writeTypes = new Request.OpType[DB.BATCHSIZE];
+  private Request.OpType[] readTypes  = new Request.OpType[DB.BATCHSIZE];
+  private String[] writeKeys = new String[DB.BATCHSIZE];
+  private String[] writeVals = new String[DB.BATCHSIZE];
+  private String[] readKeys  = new String[DB.BATCHSIZE];
+  private int writeBatchSize = 0;
+  private int readBatchSize  = 0;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -142,6 +143,11 @@ public class DBWrapper extends DB {
             " for latency are: " + this.latencyTrackedErrors.toString());
       }
     }
+
+    // [Rubble]
+    channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
+    asyncStub = ReplicationServiceGrpc.newStub(channel);
+    // [Rubble]
   }
 
   /**
@@ -155,9 +161,10 @@ public class DBWrapper extends DB {
 
       // [Rubble]
       try {
+        //LOGGER.info("shutdown the channel");
         channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
       } catch (Exception e) {
-        LOGGER.info("Failed to shutdown gRPC channle");
+        LOGGER.error("Failed to shutdown gRPC channle", e);
       }
       // [Rubble]
 
@@ -168,42 +175,56 @@ public class DBWrapper extends DB {
   }
 
   // [Rubble]
-  public void sendBatch() throws Exception {
+  public void sendBatch(boolean isWrite) throws Exception {
+    StreamObserver<Reply> replyObserver = new StreamObserver<Reply>() {
+      @Override
+      public void onNext(Reply reply) {
+        //LOGGER.info("receive reply from replicator");
+        int batchSize = reply.getBatchSize();
+        opsdone.accumulate(batchSize);
+        for (int i = 0; i < batchSize; i++) {
+          if (!reply.getStatus(i).equals("OK")) {
+            LOGGER.error(reply.getContent(i));
+          }
+        }
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOGGER.error("Encountered error in send", t);
+      }
+
+      @Override
+      public void onCompleted() {
+        //LOGGER.info("onCompleted from replicator");
+        LIMITER.release();
+      }
+    };
+
+
     StreamObserver<Request> requestObserver = 
-        asyncStub.send(new StreamObserver<Reply>() {
-          @Override
-          public void onNext(Reply reply) {
-              opsdone.accumulate(DB.BATCHSIZE);
-              Status res = new Status(reply.getStatus(), reply.getContent());
-          }
+        isWrite ? asyncStub.write(replyObserver) : asyncStub.read(replyObserver);
 
-          @Override
-          public void onError(Throwable t) {
-              LOGGER.info("Encountered error in send");
-          }
-
-          @Override
-          public void onCompleted() {
-              LIMITER.release();
-          }
-        });
-
+    int batchSize = isWrite ? writeBatchSize : readBatchSize;
     Request.Builder builder = Request.newBuilder();
-    
-    for (int i = 0; i < batchsize; i++) {
-      builder.addType(types[i]);
-      builder.addKey(keys[i]);
-      builder.addValue(vals[i]);
-    }
-
-    if (batchsize < DB.BATCHSIZE) {
-      builder.addKey("STOP");
+    builder.setBatchSize(batchSize);
+    for (int i = 0; i < batchSize; i++) {
+      builder.addType(isWrite ? writeTypes[i] : readTypes[i]);
+      builder.addKey(isWrite ? writeKeys[i] : readKeys[i]);
+      if (isWrite) {
+        builder.addValue(writeVals[i]);
+      }
     }
 
     LIMITER.acquire();
+    //LOGGER.info("send batch to replicator. isWrite: " + isWrite);
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
-    batchsize = 0;
+    if (isWrite) {
+      writeBatchSize = 0;
+    } else {
+      readBatchSize = 0;
+    }
   }
   // [Rubble]
 
@@ -224,12 +245,12 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        types[batchsize] = Request.OpType.READ;
-        keys[batchsize] = key;
-        vals[batchsize] = "NULL";
-        batchsize++;
-        if (batchsize == DB.BATCHSIZE) {
-          sendBatch();
+        readTypes[writeBatchSize] = Request.OpType.READ;
+        readTypes[readBatchSize] = Request.OpType.READ;
+        readKeys[readBatchSize] = key;
+        readBatchSize++;
+        if (readBatchSize == DB.BATCHSIZE) {
+          sendBatch(false);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -300,12 +321,12 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        types[batchsize] = Request.OpType.UPDATE;
-        keys[batchsize] = key;
-        vals[batchsize] = new String(serializeValues(values));
-        batchsize++;
-        if (batchsize == DB.BATCHSIZE) {
-          sendBatch();
+        writeTypes[writeBatchSize] = Request.OpType.UPDATE;
+        writeKeys[writeBatchSize] = key;
+        writeVals[writeBatchSize] = new String(serializeValues(values));
+        writeBatchSize++;
+        if (writeBatchSize == DB.BATCHSIZE) {
+          sendBatch(true);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -337,12 +358,12 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        types[batchsize] = Request.OpType.INSERT;
-        keys[batchsize] = key;
-        vals[batchsize] = new String(serializeValues(values));
-        batchsize++;
-        if (batchsize == DB.BATCHSIZE) {
-          sendBatch();
+        writeTypes[writeBatchSize] = Request.OpType.INSERT;
+        writeKeys[writeBatchSize] = key;
+        writeVals[writeBatchSize] = new String(serializeValues(values));
+        writeBatchSize++;
+        if (writeBatchSize == DB.BATCHSIZE) {
+          sendBatch(true);
         }
       } catch (Exception e) {
         e.printStackTrace();

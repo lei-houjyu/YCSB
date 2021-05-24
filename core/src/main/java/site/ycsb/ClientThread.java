@@ -91,7 +91,6 @@ public class ClientThread implements Runnable {
   public void run() {
     try {
       db.init();
-      System.out.println(db);
     } catch (DBException e) {
       e.printStackTrace();
       e.printStackTrace(System.out);
@@ -133,7 +132,8 @@ public class ClientThread implements Runnable {
 
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch();
+          ((DBWrapper)db).sendBatch(true);
+          ((DBWrapper)db).sendBatch(false);
         }
         // [Rubble]
       } else {
@@ -151,7 +151,7 @@ public class ClientThread implements Runnable {
         }
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch();
+          ((DBWrapper)db).sendBatch(true);
         }
         // [Rubble]
       }

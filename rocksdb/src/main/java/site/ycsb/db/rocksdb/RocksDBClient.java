@@ -58,7 +58,6 @@ public class RocksDBClient extends DB {
 
   @Override
   public void init() throws DBException {
-    LOGGER.info("RocksDBClient init()");
     synchronized(RocksDBClient.class) {
       if(rocksDb == null) {
         rocksDbDir = Paths.get(getProperties().getProperty(PROPERTY_ROCKSDB_DIR));
