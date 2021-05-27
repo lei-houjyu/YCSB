@@ -132,8 +132,10 @@ public class ClientThread implements Runnable {
 
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch(true);
-          ((DBWrapper)db).sendBatch(false);
+          ((DBWrapper)db).sendBatch(true, 0);
+          ((DBWrapper)db).sendBatch(true, 1);
+          ((DBWrapper)db).sendBatch(false, 0);
+          ((DBWrapper)db).sendBatch(false, 1);
         }
         // [Rubble]
       } else {
@@ -151,7 +153,8 @@ public class ClientThread implements Runnable {
         }
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch(true);
+          ((DBWrapper)db).sendBatch(true, 0);
+          ((DBWrapper)db).sendBatch(true, 1);
         }
         // [Rubble]
       }

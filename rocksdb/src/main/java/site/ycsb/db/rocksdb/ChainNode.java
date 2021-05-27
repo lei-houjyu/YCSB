@@ -92,6 +92,9 @@ public class ChainNode {
     if (nextChannel != null) {
       nextChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
     }
+    if (db != null) {
+      db.cleanup();
+    }
   }
 
   private void blockUntilShutdown() throws InterruptedException {

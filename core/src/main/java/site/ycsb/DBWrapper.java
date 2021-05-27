@@ -74,13 +74,21 @@ public class DBWrapper extends DB {
   private ManagedChannel channel;
   private ReplicationServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
-  private Request.OpType[] writeTypes = new Request.OpType[DB.BATCHSIZE];
-  private Request.OpType[] readTypes  = new Request.OpType[DB.BATCHSIZE];
-  private String[] writeKeys = new String[DB.BATCHSIZE];
-  private String[] writeVals = new String[DB.BATCHSIZE];
-  private String[] readKeys  = new String[DB.BATCHSIZE];
-  private int writeBatchSize = 0;
-  private int readBatchSize  = 0;
+  private Request.OpType[] writeTypes0 = new Request.OpType[DB.BATCHSIZE];
+  private Request.OpType[] readTypes0  = new Request.OpType[DB.BATCHSIZE];
+  private String[] writeKeys0 = new String[DB.BATCHSIZE];
+  private String[] writeVals0 = new String[DB.BATCHSIZE];
+  private String[] readKeys0  = new String[DB.BATCHSIZE];
+  private int writeBatchSize0 = 0;
+  private int readBatchSize0  = 0;
+
+  private Request.OpType[] writeTypes1 = new Request.OpType[DB.BATCHSIZE];
+  private Request.OpType[] readTypes1  = new Request.OpType[DB.BATCHSIZE];
+  private String[] writeKeys1 = new String[DB.BATCHSIZE];
+  private String[] writeVals1 = new String[DB.BATCHSIZE];
+  private String[] readKeys1  = new String[DB.BATCHSIZE];
+  private int writeBatchSize1 = 0;
+  private int readBatchSize1  = 0;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -175,7 +183,7 @@ public class DBWrapper extends DB {
   }
 
   // [Rubble]
-  public void sendBatch(boolean isWrite) throws Exception {
+  public void sendBatch(boolean isWrite, int shard) throws Exception {
     StreamObserver<Reply> replyObserver = new StreamObserver<Reply>() {
       @Override
       public void onNext(Reply reply) {
@@ -206,14 +214,25 @@ public class DBWrapper extends DB {
     StreamObserver<Request> requestObserver = 
         isWrite ? asyncStub.write(replyObserver) : asyncStub.read(replyObserver);
 
-    int batchSize = isWrite ? writeBatchSize : readBatchSize;
+    int batchSize = isWrite ? writeBatchSize0 : readBatchSize0;
+    if (shard == 1) {
+      batchSize = isWrite ? writeBatchSize1 : readBatchSize1;
+    }
     Request.Builder builder = Request.newBuilder();
     builder.setBatchSize(batchSize);
     for (int i = 0; i < batchSize; i++) {
-      builder.addType(isWrite ? writeTypes[i] : readTypes[i]);
-      builder.addKey(isWrite ? writeKeys[i] : readKeys[i]);
-      if (isWrite) {
-        builder.addValue(writeVals[i]);
+      if (shard == 0) {
+        builder.addType(isWrite ? writeTypes0[i] : readTypes0[i]);
+        builder.addKey(isWrite ? writeKeys0[i] : readKeys0[i]);
+        if (isWrite) {
+          builder.addValue(writeVals0[i]);
+        }
+      } else {
+        builder.addType(isWrite ? writeTypes1[i] : readTypes1[i]);
+        builder.addKey(isWrite ? writeKeys1[i] : readKeys1[i]);
+        if (isWrite) {
+          builder.addValue(writeVals1[i]);
+        }
       }
     }
 
@@ -222,9 +241,17 @@ public class DBWrapper extends DB {
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
     if (isWrite) {
-      writeBatchSize = 0;
+      if (shard == 0) {
+        writeBatchSize0 = 0;
+      } else {
+        writeBatchSize1 = 0;
+      }
     } else {
-      readBatchSize = 0;
+      if (shard == 0) {
+        readBatchSize0 = 0;
+      } else {
+        readBatchSize1 = 0;
+      }
     }
   }
   // [Rubble]
@@ -246,12 +273,22 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        readTypes[writeBatchSize] = Request.OpType.READ;
-        readTypes[readBatchSize] = Request.OpType.READ;
-        readKeys[readBatchSize] = key;
-        readBatchSize++;
-        if (readBatchSize == DB.BATCHSIZE) {
-          sendBatch(false);
+        if (Long.parseLong(key.substring(4)) % 2 == 0) {
+          readTypes0[writeBatchSize0] = Request.OpType.READ;
+          readTypes0[readBatchSize0] = Request.OpType.READ;
+          readKeys0[readBatchSize0] = key;
+          readBatchSize0++;
+          if (readBatchSize0 == DB.BATCHSIZE) {
+            sendBatch(false, 0);
+          }
+        } else {
+          readTypes1[writeBatchSize1] = Request.OpType.READ;
+          readTypes1[readBatchSize1] = Request.OpType.READ;
+          readKeys1[readBatchSize1] = key;
+          readBatchSize1++;
+          if (readBatchSize1 == DB.BATCHSIZE) {
+            sendBatch(false, 1);
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -322,12 +359,22 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        writeTypes[writeBatchSize] = Request.OpType.UPDATE;
-        writeKeys[writeBatchSize] = key;
-        writeVals[writeBatchSize] = new String(serializeValues(values));
-        writeBatchSize++;
-        if (writeBatchSize == DB.BATCHSIZE) {
-          sendBatch(true);
+        if (Long.parseLong(key.substring(4)) % 2 == 0) {
+          writeTypes0[writeBatchSize0] = Request.OpType.UPDATE;
+          writeKeys0[writeBatchSize0] = key;
+          writeVals0[writeBatchSize0] = new String(serializeValues(values));
+          writeBatchSize0++;
+          if (writeBatchSize0 == DB.BATCHSIZE) {
+            sendBatch(true, 0);
+          }
+        } else {
+          writeTypes1[writeBatchSize1] = Request.OpType.UPDATE;
+          writeKeys1[writeBatchSize1] = key;
+          writeVals1[writeBatchSize1] = new String(serializeValues(values));
+          writeBatchSize1++;
+          if (writeBatchSize1 == DB.BATCHSIZE) {
+            sendBatch(true, 1);
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -359,12 +406,22 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        writeTypes[writeBatchSize] = Request.OpType.INSERT;
-        writeKeys[writeBatchSize] = key;
-        writeVals[writeBatchSize] = new String(serializeValues(values));
-        writeBatchSize++;
-        if (writeBatchSize == DB.BATCHSIZE) {
-          sendBatch(true);
+        if (Long.parseLong(key.substring(4)) % 2 == 0) {
+          writeTypes0[writeBatchSize0] = Request.OpType.INSERT;
+          writeKeys0[writeBatchSize0] = key;
+          writeVals0[writeBatchSize0] = new String(serializeValues(values));
+          writeBatchSize0++;
+          if (writeBatchSize0 == DB.BATCHSIZE) {
+            sendBatch(true, 0);
+          }
+        } else {
+          writeTypes1[writeBatchSize1] = Request.OpType.INSERT;
+          writeKeys1[writeBatchSize1] = key;
+          writeVals1[writeBatchSize1] = new String(serializeValues(values));
+          writeBatchSize1++;
+          if (writeBatchSize1 == DB.BATCHSIZE) {
+            sendBatch(true, 1);
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
