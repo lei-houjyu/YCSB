@@ -93,7 +93,11 @@ public class ChainNode {
       nextChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
     }
     if (db != null) {
-      db.cleanup();
+      try {
+        db.cleanup();
+      } catch (DBException e) {
+        e.printStackTrace(System.err);
+      }
     }
   }
 
