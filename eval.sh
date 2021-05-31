@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+#set -x
 
 if [ $# -lt 7 ]; then
     echo "Usage: bash eval.sh replicator_port ip_0 ip_1 head_port tail_port mode(run or load) workload"
@@ -18,9 +18,9 @@ head_1=${ip_1}:${head_port}
 tail_0=${ip_1}:${tail_port}
 tail_1=${ip_0}:${tail_port}
 
-echo replicator at localhost:$port
-echo head_0 at $head_0 tail_0 at $tail_0
-echo head_1 at $head_1 tail_1 at $tail_1
+# kill zumbie replicator, heads, and tails
+bash kill.sh $ip_0 $ip_1
+sleep 5
 
 # start two tail nodes first
 ssh ${USER}@${ip_0} "cd YCSB-tail; nohup bash node.sh /mnt/sdb/rocksdb-tail ${tail_port} tail null > nohup.out 2>&1 &"
@@ -43,3 +43,4 @@ grep Throughput ycsb.out
 
 # kill replicator, heads, and tails
 bash kill.sh $ip_0 $ip_1
+sleep 5
