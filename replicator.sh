@@ -1,4 +1,4 @@
-if [ $# -lt 3 ]; then
+if [ $# -lt 5 ]; then
     echo "Usage: bash replicator.sh replicator_port ip:port(head0) ip:port(tail0) ip:port(head1) ip:port(tail1)"
     exit
 fi
