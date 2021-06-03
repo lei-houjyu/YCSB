@@ -1,12 +1,17 @@
 #!/bin/bash
 
 if [ $# -lt 2 ]; then
-    echo "Usage: bash update-nodes.sh ip_0 ip_1"
+    echo "Usage: bash update-nodes.sh shard_num ip_0 ip_1 ... ip_N"
     exit
 fi
 
 sudo killall java
-ssh ${USER}@$1 "cd YCSB-head; git reset --hard HEAD; git pull origin lhy_dev; bash build.sh"
-ssh ${USER}@$1 "cd YCSB-tail; git reset --hard HEAD; git pull origin lhy_dev; bash build.sh"
-ssh ${USER}@$2 "cd YCSB-head; git reset --hard HEAD; git pull origin lhy_dev; bash build.sh"
-ssh ${USER}@$2 "cd YCSB-tail; git reset --hard HEAD; git pull origin lhy_dev; bash build.sh"
+shard_num=$1
+shift
+for ip in $*
+do
+    for shard in $(seq 1 $shard_num)
+    do
+        ssh ${USER}@${ip} "cd YCSB-${shard}; git reset --hard HEAD; git pull origin lhy_dev; bash build.sh"
+    done
+done
