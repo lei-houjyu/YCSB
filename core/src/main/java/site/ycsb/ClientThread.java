@@ -30,6 +30,9 @@ public class ClientThread implements Runnable {
   // Counts down each of the clients completing.
   private final CountDownLatch completeLatch;
 
+  // [Rubble]
+  private static int shardNum;
+  // [Rubble]
   private static boolean spinSleep;
   private DB db;
   private boolean dotransactions;
@@ -70,6 +73,7 @@ public class ClientThread implements Runnable {
     this.props = props;
     measurements = Measurements.getMeasurements();
     spinSleep = Boolean.valueOf(this.props.getProperty("spin.sleep", "false"));
+    shardNum = Integer.parseInt(this.props.getProperty("shard"));
     this.completeLatch = completeLatch;
   }
 
@@ -132,10 +136,10 @@ public class ClientThread implements Runnable {
 
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch(true, 0);
-          ((DBWrapper)db).sendBatch(true, 1);
-          ((DBWrapper)db).sendBatch(false, 0);
-          ((DBWrapper)db).sendBatch(false, 1);
+          for (int i = 0; i < shardNum; i++) {
+            ((DBWrapper)db).sendBatch(true, i);
+            ((DBWrapper)db).sendBatch(false, i);
+          }
         }
         // [Rubble]
       } else {
@@ -153,8 +157,9 @@ public class ClientThread implements Runnable {
         }
         // [Rubble]
         if (opcount % DB.BATCHSIZE != 0) {
-          ((DBWrapper)db).sendBatch(true, 0);
-          ((DBWrapper)db).sendBatch(true, 1);
+          for (int i = 0; i < shardNum; i++) {
+            ((DBWrapper)db).sendBatch(true, i);
+          }
         }
         // [Rubble]
       }
