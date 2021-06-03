@@ -150,7 +150,7 @@ public class DBWrapper extends DB {
     // [Rubble]
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
     asyncStub = ReplicationServiceGrpc.newStub(channel);
-    shardNum = Integer.parseInt(getProperty("shard"));
+    shardNum = Integer.parseInt(getProperties().getProperty("shard"));
     writeTypes = new Request.OpType[shardNum][DB.BATCHSIZE];
     writeKeys  = new String[shardNum][DB.BATCHSIZE];
     writeVals  = new String[shardNum][DB.BATCHSIZE];
@@ -233,9 +233,9 @@ public class DBWrapper extends DB {
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
     if (isWrite) {
-      writeBatchSize[idx] = 0;
+      writeBatchSize[shard] = 0;
     } else {
-      readBatchSize[idx] = 0;
+      readBatchSize[shard] = 0;
     }
   }
   // [Rubble]
@@ -257,7 +257,7 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        int idx = Integer.parseInt(key.substring(4)) % shardNum;
         readTypes[idx][readBatchSize[idx]] = Request.OpType.READ;
         readKeys[idx][readBatchSize[idx]] = key;
         readBatchSize[idx]++;
@@ -333,7 +333,7 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        int idx = Integer.parseInt(key.substring(4)) % shardNum;
         writeTypes[idx][writeBatchSize[idx]] = Request.OpType.UPDATE;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
@@ -371,7 +371,7 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        int idx = Integer.parseInt(key.substring(4)) % shardNum;
         writeTypes[idx][writeBatchSize[idx]] = Request.OpType.INSERT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
