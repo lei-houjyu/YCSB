@@ -43,8 +43,8 @@ public class Replicator {
     this.port = Integer.parseInt(props.getProperty("port"));
     this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
     for (int i = 0; i < shardNum; i++) {
-      headNode[i] = props.getProperty("head"+i);
-      tailNode[i] = props.getProperty("tail"+i);
+      headNode[i] = props.getProperty("head"+(i+1));
+      tailNode[i] = props.getProperty("tail"+(i+1));
       this.headChannel[i] = ManagedChannelBuilder.forTarget(headNode[i]).usePlaintext().build();
       this.tailChannel[i] = ManagedChannelBuilder.forTarget(tailNode[i]).usePlaintext().build();
       this.headStub[i] = ReplicationServiceGrpc.newStub(this.headChannel[i]);

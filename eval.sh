@@ -1,46 +1,69 @@
 #!/bin/bash
 
-#set -x
-
-if [ $# -lt 7 ]; then
-    echo "Usage: bash eval.sh replicator_port ip_0 ip_1 head_port tail_port mode(run or load) workload"
+if [ $# -lt 5 ]; then
+    echo "Usage: bash eval.sh replicator_port mode(run or load) workload ip_0 ... ip_N"
     exit
 fi
 
 port=$1
-ip_0=$2
-ip_1=$3
-head_port=$4
-tail_port=$5
-
-head_0=${ip_0}:${head_port}
-head_1=${ip_1}:${head_port}
-tail_0=${ip_1}:${tail_port}
-tail_1=${ip_0}:${tail_port}
+mode=$2
+workload=$3
+shift 3
+shard_num=$#
 
 # kill zumbie replicator, heads, and tails
-bash kill.sh $ip_0 $ip_1
+bash kill.sh $*
 sleep 5
 
-# start two tail nodes first
-ssh ${USER}@${ip_0} "cd YCSB-tail; nohup bash node.sh /mnt/sdb/rocksdb-tail ${tail_port} tail null > nohup.out 2>&1 &"
-ssh ${USER}@${ip_1} "cd YCSB-tail; nohup bash node.sh /mnt/sdb/rocksdb-tail ${tail_port} tail null > nohup.out 2>&1 &"
-ssh ${USER}@${ip_0} "cd YCSB-tail; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
-ssh ${USER}@${ip_1} "cd YCSB-tail; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
+# start nodes from tail to head
+ip=($*)
+replicator_args=''
+for i in $(seq 1 $shard_num)
+do
+    cur_port=`expr 8980 + $i`
+    pre_port=`expr 8979 + $i`
+    # start nodes in background
+    for j in $(seq 1 $#)
+    do
+        cur_ip=${ip[$j-1]}
+        pre_ip=${ip[$j-2]}
+        case $i in
+            1)
+            replicator_args='-p tail'${j}'='${cur_ip}:${cur_port}' '$replicator_args
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null > nohup.out 2>&1 &"
+            ;;
 
-# start two head nodes first
-ssh ${USER}@${ip_0} "cd YCSB-head; nohup bash node.sh /mnt/sdb/rocksdb-head ${head_port} head ${tail_0} > nohup.out 2>&1 &"
-ssh ${USER}@${ip_1} "cd YCSB-head; nohup bash node.sh /mnt/sdb/rocksdb-head ${head_port} head ${tail_1} > nohup.out 2>&1 &"
-ssh ${USER}@${ip_0} "cd YCSB-head; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
-ssh ${USER}@${ip_1} "cd YCSB-head; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
+            $shard_num)
+            chain=`expr $j - $shard_num + 1`
+            if [ $chain -lt 1 ]
+            then
+                chain=`expr $chain + $shard_num`
+            fi
+            replicator_args='-p head'${chain}'='${cur_ip}:${cur_port}' '$replicator_args
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} > nohup.out 2>&1 &"
+            ;;
 
+            *)
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} > nohup.out 2>&1 &"
+            ;;
+        esac
+    done
+    # wait for current nodes to be ready, then we start the next round of nodes
+    for j in $(seq 1 $#)
+    do
+        cur_ip=${ip[$j-1]}
+        ssh ${USER}@${cur_ip} "cd YCSB-${i}; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
+    done
+done
+
+echo $replicator_args
 # start the replicator
-bash replicator.sh 8980 $head_0 $tail_0 $head_1 $tail_1 > replicator.out 2>&1 &
+./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port $replicator_args
 
 # start ycsb
-bash $6.sh $7 localhost:$port > ycsb.out 2>&1
+bash $mode.sh $workload localhost:$port > ycsb.out 2>&1
 grep Throughput ycsb.out
 
 # kill replicator, heads, and tails
-bash kill.sh $ip_0 $ip_1
+bash kill.sh $*
 sleep 5
