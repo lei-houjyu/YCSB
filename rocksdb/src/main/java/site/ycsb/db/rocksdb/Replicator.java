@@ -22,22 +22,27 @@ import java.io.IOException;
  * @author Haoyu Li.
  */
 public class Replicator {
-  private static final int SHARD = 2;
+  private final int shardNum;
   private static Properties props;
   private final int port;
   private final Server server;
-  private final ManagedChannel[] headChannel = new ManagedChannel[SHARD];
-  private final ManagedChannel[] tailChannel = new ManagedChannel[SHARD];
-  private final ReplicationServiceStub[] headStub = new ReplicationServiceStub[SHARD];
-  private final ReplicationServiceStub[] tailStub = new ReplicationServiceStub[SHARD];
+  private final ManagedChannel[] headChannel;
+  private final ManagedChannel[] tailChannel;
+  private final ReplicationServiceStub[] headStub;
+  private final ReplicationServiceStub[] tailStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
   
   public Replicator() throws IOException {
-    String[] headNode = new String[SHARD];
-    String[] tailNode = new String [SHARD];
+    this.shardNum = Integer.parseInt(props.getProperty("shard"));
+    String[] headNode = new String[shardNum];
+    String[] tailNode = new String [shardNum];
+    this.headChannel = new ManagedChannel[shardNum];
+    this.tailChannel = new ManagedChannel[shardNum];
+    this.headStub = new ReplicationServiceStub[shardNum];
+    this.tailStub = new ReplicationServiceStub[shardNum];
     this.port = Integer.parseInt(props.getProperty("port"));
     this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
-    for (int i = 0; i < SHARD; i++) {
+    for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+i);
       tailNode[i] = props.getProperty("tail"+i);
       this.headChannel[i] = ManagedChannelBuilder.forTarget(headNode[i]).usePlaintext().build();
@@ -68,7 +73,7 @@ public class Replicator {
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
     }
-    for (int i = 0; i < SHARD; i++) {
+    for (int i = 0; i < shardNum; i++) {
       if (headChannel[i] != null) {
         headChannel[i].shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
       }
@@ -101,7 +106,7 @@ public class Replicator {
         @Override
         public void onNext(Request request) {
           //LOGGER.info("send read request to tail");
-          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % 2);
+          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % shardNum);
           StreamObserver<Request> tailObserver =
               tailStub[shard].read(new StreamObserver<Reply>() {
                   @Override
@@ -145,7 +150,7 @@ public class Replicator {
         @Override
         public void onNext(Request request) {
           //LOGGER.info("send write request to head");
-          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % 2);
+          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % shardNum);
           StreamObserver<Request> headObserver = 
               headStub[shard].write(new StreamObserver<Reply>() {
                   @Override

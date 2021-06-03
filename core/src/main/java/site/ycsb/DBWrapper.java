@@ -74,21 +74,16 @@ public class DBWrapper extends DB {
   private ManagedChannel channel;
   private ReplicationServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
-  private Request.OpType[] writeTypes0 = new Request.OpType[DB.BATCHSIZE];
-  private Request.OpType[] readTypes0  = new Request.OpType[DB.BATCHSIZE];
-  private String[] writeKeys0 = new String[DB.BATCHSIZE];
-  private String[] writeVals0 = new String[DB.BATCHSIZE];
-  private String[] readKeys0  = new String[DB.BATCHSIZE];
-  private int writeBatchSize0 = 0;
-  private int readBatchSize0  = 0;
-
-  private Request.OpType[] writeTypes1 = new Request.OpType[DB.BATCHSIZE];
-  private Request.OpType[] readTypes1  = new Request.OpType[DB.BATCHSIZE];
-  private String[] writeKeys1 = new String[DB.BATCHSIZE];
-  private String[] writeVals1 = new String[DB.BATCHSIZE];
-  private String[] readKeys1  = new String[DB.BATCHSIZE];
-  private int writeBatchSize1 = 0;
-  private int readBatchSize1  = 0;
+  private int shardNum;
+  // write batch
+  private Request.OpType[][] writeTypes;
+  private String[][] writeKeys;
+  private String[][] writeVals;
+  private int[] writeBatchSize;
+  // read batch
+  private Request.OpType[][] readTypes;
+  private String[][] readKeys;
+  private int[] readBatchSize;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -155,6 +150,14 @@ public class DBWrapper extends DB {
     // [Rubble]
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
     asyncStub = ReplicationServiceGrpc.newStub(channel);
+    shardNum = Integer.parseInt(getProperty("shard"));
+    writeTypes = new Request.OpType[shardNum][DB.BATCHSIZE];
+    writeKeys  = new String[shardNum][DB.BATCHSIZE];
+    writeVals  = new String[shardNum][DB.BATCHSIZE];
+    writeBatchSize = new int[shardNum];
+    readTypes = new Request.OpType[shardNum][DB.BATCHSIZE];
+    readKeys  = new String[shardNum][DB.BATCHSIZE];
+    readBatchSize = new int[shardNum];
     // [Rubble]
   }
 
@@ -214,25 +217,14 @@ public class DBWrapper extends DB {
     StreamObserver<Request> requestObserver = 
         isWrite ? asyncStub.write(replyObserver) : asyncStub.read(replyObserver);
 
-    int batchSize = isWrite ? writeBatchSize0 : readBatchSize0;
-    if (shard == 1) {
-      batchSize = isWrite ? writeBatchSize1 : readBatchSize1;
-    }
+    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
     Request.Builder builder = Request.newBuilder();
     builder.setBatchSize(batchSize);
     for (int i = 0; i < batchSize; i++) {
-      if (shard == 0) {
-        builder.addType(isWrite ? writeTypes0[i] : readTypes0[i]);
-        builder.addKey(isWrite ? writeKeys0[i] : readKeys0[i]);
-        if (isWrite) {
-          builder.addValue(writeVals0[i]);
-        }
-      } else {
-        builder.addType(isWrite ? writeTypes1[i] : readTypes1[i]);
-        builder.addKey(isWrite ? writeKeys1[i] : readKeys1[i]);
-        if (isWrite) {
-          builder.addValue(writeVals1[i]);
-        }
+      builder.addType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
+      builder.addKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
+      if (isWrite) {
+        builder.addValue(writeVals[shard][i]);
       }
     }
 
@@ -241,17 +233,9 @@ public class DBWrapper extends DB {
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
     if (isWrite) {
-      if (shard == 0) {
-        writeBatchSize0 = 0;
-      } else {
-        writeBatchSize1 = 0;
-      }
+      writeBatchSize[idx] = 0;
     } else {
-      if (shard == 0) {
-        readBatchSize0 = 0;
-      } else {
-        readBatchSize1 = 0;
-      }
+      readBatchSize[idx] = 0;
     }
   }
   // [Rubble]
@@ -273,22 +257,12 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        if (Long.parseLong(key.substring(4)) % 2 == 0) {
-          readTypes0[writeBatchSize0] = Request.OpType.READ;
-          readTypes0[readBatchSize0] = Request.OpType.READ;
-          readKeys0[readBatchSize0] = key;
-          readBatchSize0++;
-          if (readBatchSize0 == DB.BATCHSIZE) {
-            sendBatch(false, 0);
-          }
-        } else {
-          readTypes1[writeBatchSize1] = Request.OpType.READ;
-          readTypes1[readBatchSize1] = Request.OpType.READ;
-          readKeys1[readBatchSize1] = key;
-          readBatchSize1++;
-          if (readBatchSize1 == DB.BATCHSIZE) {
-            sendBatch(false, 1);
-          }
+        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        readTypes[idx][readBatchSize[idx]] = Request.OpType.READ;
+        readKeys[idx][readBatchSize[idx]] = key;
+        readBatchSize[idx]++;
+        if (readBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(false, idx);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -359,22 +333,13 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        if (Long.parseLong(key.substring(4)) % 2 == 0) {
-          writeTypes0[writeBatchSize0] = Request.OpType.UPDATE;
-          writeKeys0[writeBatchSize0] = key;
-          writeVals0[writeBatchSize0] = new String(serializeValues(values));
-          writeBatchSize0++;
-          if (writeBatchSize0 == DB.BATCHSIZE) {
-            sendBatch(true, 0);
-          }
-        } else {
-          writeTypes1[writeBatchSize1] = Request.OpType.UPDATE;
-          writeKeys1[writeBatchSize1] = key;
-          writeVals1[writeBatchSize1] = new String(serializeValues(values));
-          writeBatchSize1++;
-          if (writeBatchSize1 == DB.BATCHSIZE) {
-            sendBatch(true, 1);
-          }
+        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        writeTypes[idx][writeBatchSize[idx]] = Request.OpType.UPDATE;
+        writeKeys[idx][writeBatchSize[idx]] = key;
+        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        writeBatchSize[idx]++;
+        if (writeBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(true, idx);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -406,22 +371,13 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        if (Long.parseLong(key.substring(4)) % 2 == 0) {
-          writeTypes0[writeBatchSize0] = Request.OpType.INSERT;
-          writeKeys0[writeBatchSize0] = key;
-          writeVals0[writeBatchSize0] = new String(serializeValues(values));
-          writeBatchSize0++;
-          if (writeBatchSize0 == DB.BATCHSIZE) {
-            sendBatch(true, 0);
-          }
-        } else {
-          writeTypes1[writeBatchSize1] = Request.OpType.INSERT;
-          writeKeys1[writeBatchSize1] = key;
-          writeVals1[writeBatchSize1] = new String(serializeValues(values));
-          writeBatchSize1++;
-          if (writeBatchSize1 == DB.BATCHSIZE) {
-            sendBatch(true, 1);
-          }
+        int idx = Long.parseLong(key.substring(4)) % shardNum;
+        writeTypes[idx][writeBatchSize[idx]] = Request.OpType.INSERT;
+        writeKeys[idx][writeBatchSize[idx]] = key;
+        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        writeBatchSize[idx]++;
+        if (writeBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(true, idx);
         }
       } catch (Exception e) {
         e.printStackTrace();
