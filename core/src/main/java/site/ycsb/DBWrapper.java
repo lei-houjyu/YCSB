@@ -257,7 +257,7 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = Integer.parseInt(key.substring(4)) % shardNum;
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
         readTypes[idx][readBatchSize[idx]] = Request.OpType.READ;
         readKeys[idx][readBatchSize[idx]] = key;
         readBatchSize[idx]++;
@@ -333,7 +333,7 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = Integer.parseInt(key.substring(4)) % shardNum;
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
         writeTypes[idx][writeBatchSize[idx]] = Request.OpType.UPDATE;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
@@ -371,7 +371,7 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        int idx = Integer.parseInt(key.substring(4)) % shardNum;
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
         writeTypes[idx][writeBatchSize[idx]] = Request.OpType.INSERT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));

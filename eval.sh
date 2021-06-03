@@ -58,10 +58,10 @@ done
 
 echo $replicator_args
 # start the replicator
-./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port $replicator_args
+./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
 
 # start ycsb
-bash $mode.sh $workload localhost:$port > ycsb.out 2>&1
+bash $mode.sh $workload localhost:$port $shard_num > ycsb.out 2>&1
 grep Throughput ycsb.out
 
 # kill replicator, heads, and tails
