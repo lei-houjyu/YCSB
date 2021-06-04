@@ -73,7 +73,9 @@ public class ClientThread implements Runnable {
     this.props = props;
     measurements = Measurements.getMeasurements();
     spinSleep = Boolean.valueOf(this.props.getProperty("spin.sleep", "false"));
+    // [Rubble]
     shardNum = Integer.parseInt(this.props.getProperty("shard"));
+    // [Rubble]
     this.completeLatch = completeLatch;
   }
 
@@ -135,11 +137,9 @@ public class ClientThread implements Runnable {
         }
 
         // [Rubble]
-        if (opcount % DB.BATCHSIZE != 0) {
-          for (int i = 0; i < shardNum; i++) {
-            ((DBWrapper)db).sendBatch(true, i);
-            ((DBWrapper)db).sendBatch(false, i);
-          }
+        for (int i = 0; i < shardNum; i++) {
+          ((DBWrapper)db).sendBatch(true, i);
+          ((DBWrapper)db).sendBatch(false, i);
         }
         // [Rubble]
       } else {
@@ -156,10 +156,8 @@ public class ClientThread implements Runnable {
           throttleNanos(startTimeNanos);
         }
         // [Rubble]
-        if (opcount % DB.BATCHSIZE != 0) {
-          for (int i = 0; i < shardNum; i++) {
-            ((DBWrapper)db).sendBatch(true, i);
-          }
+        for (int i = 0; i < shardNum; i++) {
+          ((DBWrapper)db).sendBatch(true, i);
         }
         // [Rubble]
       }

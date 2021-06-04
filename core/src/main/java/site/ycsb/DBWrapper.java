@@ -187,6 +187,10 @@ public class DBWrapper extends DB {
 
   // [Rubble]
   public void sendBatch(boolean isWrite, int shard) throws Exception {
+    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
+    if (batchSize == 0) {
+      return;
+    }
     StreamObserver<Reply> replyObserver = new StreamObserver<Reply>() {
       @Override
       public void onNext(Reply reply) {
@@ -217,7 +221,6 @@ public class DBWrapper extends DB {
     StreamObserver<Request> requestObserver = 
         isWrite ? asyncStub.write(replyObserver) : asyncStub.read(replyObserver);
 
-    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
     Request.Builder builder = Request.newBuilder();
     builder.setBatchSize(batchSize);
     for (int i = 0; i < batchSize; i++) {
@@ -229,7 +232,7 @@ public class DBWrapper extends DB {
     }
 
     LIMITER.acquire();
-    //LOGGER.info("send batch to replicator. isWrite: " + isWrite);
+    // LOGGER.info("send batch " + batchSize);
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
     if (isWrite) {
