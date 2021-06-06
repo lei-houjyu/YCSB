@@ -76,12 +76,12 @@ public class DBWrapper extends DB {
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   private int shardNum;
   // write batch
-  private Request.OpType[][] writeTypes;
+  private OpType[][] writeTypes;
   private String[][] writeKeys;
   private String[][] writeVals;
   private int[] writeBatchSize;
   // read batch
-  private Request.OpType[][] readTypes;
+  private OpType[][] readTypes;
   private String[][] readKeys;
   private int[] readBatchSize;
   // [Rubble]
@@ -151,11 +151,11 @@ public class DBWrapper extends DB {
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
     asyncStub = ReplicationServiceGrpc.newStub(channel);
     shardNum = Integer.parseInt(getProperties().getProperty("shard"));
-    writeTypes = new Request.OpType[shardNum][DB.BATCHSIZE];
+    writeTypes = new OpType[shardNum][DB.BATCHSIZE];
     writeKeys  = new String[shardNum][DB.BATCHSIZE];
     writeVals  = new String[shardNum][DB.BATCHSIZE];
     writeBatchSize = new int[shardNum];
-    readTypes = new Request.OpType[shardNum][DB.BATCHSIZE];
+    readTypes = new OpType[shardNum][DB.BATCHSIZE];
     readKeys  = new String[shardNum][DB.BATCHSIZE];
     readBatchSize = new int[shardNum];
     // [Rubble]
@@ -197,10 +197,25 @@ public class DBWrapper extends DB {
         //LOGGER.info("receive reply from replicator");
         int batchSize = reply.getBatchSize();
         opsdone.accumulate(batchSize);
+        long latency = System.nanoTime() - reply.getTime(0);
         for (int i = 0; i < batchSize; i++) {
           String status = reply.getStatus(i);
+          switch (reply.getType(i)) {
+            case READ:
+              measurements.measure("READ-" + status, (int)latency);
+              break;
+            case UPDATE:
+              measurements.measure("UPDATE-" + status, (int)latency);
+              break;
+            case INSERT:
+              measurements.measure("INSERT-" + status, (int)latency);
+              break;
+            default:
+              LOGGER.error("Unsupported type!");
+              break;
+          }
           if (!status.equals("OK") && !status.equals("NOT_FOUND")) {
-            LOGGER.error(reply.getContent(i));
+            LOGGER.error(reply.getStatus(i));
           }
         }
       }
@@ -233,6 +248,7 @@ public class DBWrapper extends DB {
 
     LIMITER.acquire();
     // LOGGER.info("send batch " + batchSize);
+    builder.addTime(System.nanoTime());
     requestObserver.onNext(builder.build());
     requestObserver.onCompleted();
     if (isWrite) {
@@ -261,7 +277,7 @@ public class DBWrapper extends DB {
       // [Rubble]: send this op to replicator
       try {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        readTypes[idx][readBatchSize[idx]] = Request.OpType.READ;
+        readTypes[idx][readBatchSize[idx]] = OpType.READ;
         readKeys[idx][readBatchSize[idx]] = key;
         readBatchSize[idx]++;
         if (readBatchSize[idx] == DB.BATCHSIZE) {
@@ -272,7 +288,7 @@ public class DBWrapper extends DB {
       }
       long en = System.nanoTime();
       Status res = Status.OK;
-      measure("READ", res, ist, st, en);
+      // measure("READ", res, ist, st, en);
       measurements.reportStatus("READ", res);
       return res;
       // [Rubble]
@@ -337,7 +353,7 @@ public class DBWrapper extends DB {
       // [Rubble]: send this op to replicator
       try {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        writeTypes[idx][writeBatchSize[idx]] = Request.OpType.UPDATE;
+        writeTypes[idx][writeBatchSize[idx]] = OpType.UPDATE;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
         writeBatchSize[idx]++;
@@ -349,7 +365,7 @@ public class DBWrapper extends DB {
       }
       long en = System.nanoTime();
       Status res = Status.OK;
-      measure("UPDATE", res, ist, st, en);
+      // measure("UPDATE", res, ist, st, en);
       measurements.reportStatus("UPDATE", res);
       return res;
       // [Rubble]
@@ -375,7 +391,7 @@ public class DBWrapper extends DB {
       // [Rubble]: send this op to replicator
       try {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        writeTypes[idx][writeBatchSize[idx]] = Request.OpType.INSERT;
+        writeTypes[idx][writeBatchSize[idx]] = OpType.INSERT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
         writeBatchSize[idx]++;
@@ -387,7 +403,7 @@ public class DBWrapper extends DB {
       }
       long en = System.nanoTime();
       Status res = Status.OK;
-      measure("INSERT", res, ist, st, en);
+      // measure("INSERT", res, ist, st, en);
       measurements.reportStatus("INSERT", res);
       return res;
       // [Rubble]

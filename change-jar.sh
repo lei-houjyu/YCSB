@@ -10,5 +10,5 @@ folder=$2
 shift 2
 for ip in $*
 do
-    ssh ${USER}@$ip "cp $jar ${folder}/rocksdb/target/dependency/rocksdbjni-6.14.0.jar"
+    ssh ${USER}@$ip "cd $folder; cp $jar rocksdb/target/dependency/rocksdbjni-6.14.0.jar"
 done

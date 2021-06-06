@@ -12,21 +12,24 @@ service ReplicationService {
   rpc read  (stream Request) returns (stream Reply) {}
 }
 
+enum OpType {
+    READ   = 0;
+    SCAN   = 1;
+    INSERT = 2;
+    UPDATE = 3;
+}
+
 message Request {
-    enum OpType {
-        READ   = 0;
-        SCAN   = 1;
-        INSERT = 2;
-        UPDATE = 3;
-    }
     int32 batchSize = 1;
     repeated OpType type  = 2;
     repeated string key   = 3;
     repeated string value = 4;
+    repeated int64  time  = 5;
 }
   
 message Reply {
     int32 batchSize = 1;
-    repeated string status = 2;
-    repeated string content = 3;
+    repeated OpType type   = 2;
+    repeated string status = 3;
+    repeated int64  time   = 4;
 }

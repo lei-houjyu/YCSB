@@ -121,7 +121,7 @@ public class ChainNode {
     public StreamObserver<Request> read(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() {
         public Status processRead(Request request, int i) {
-          Request.OpType type = request.getType(i);
+          OpType type = request.getType(i);
           String key = request.getKey(i);
           Map<String, ByteIterator> values = new HashMap<>();
           switch (type) {
@@ -150,10 +150,11 @@ public class ChainNode {
               LOGGER.error("Some request failed!");
             }
             builder.addStatus(res.getName());
-            builder.addContent(res.getDescription());
+            builder.addType(request.getType(i));
           }
 
           //LOGGER.info("reply to replicator");
+          builder.addTime(request.getTime(0));
           responseObserver.onNext(builder.build());
         }
 
@@ -173,7 +174,7 @@ public class ChainNode {
     public StreamObserver<Request> write(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() {
         public Status processWrite(Request request, int i) {
-          Request.OpType type = request.getType(i);
+          OpType type = request.getType(i);
           String key = request.getKey(i);
           String value = null;
           Map<String, ByteIterator> values = new HashMap<>();
@@ -209,11 +210,12 @@ public class ChainNode {
               LOGGER.error("Some request failed!");
             }
             builder.addStatus(res.getName());
-            builder.addContent(res.getDescription());
+            builder.addType(request.getType(i));
           }
 
           if (nodeType.equals(TAIL)) {
             //LOGGER.info("reply to replicator");
+            builder.addTime(request.getTime(0));
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
           } else {
