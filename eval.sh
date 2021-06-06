@@ -18,6 +18,14 @@ sleep 5
 # start nodes from tail to head
 ip=($*)
 replicator_args=''
+# cp the dataset in parallel
+for i in $(seq 1 $shard_num)
+do
+    for j in $(seq 1 $#)
+    do
+        ssh ${USER}@${cur_ip} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} &"
+    done
+done
 for i in $(seq 1 $shard_num)
 do
     cur_port=`expr 8980 + $i`
