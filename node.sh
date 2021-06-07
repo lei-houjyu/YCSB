@@ -4,7 +4,7 @@ if [ $# -lt 4 ]; then
     exit
 fi
 
-pid=`ps -aux | grep "cp -r $1-backup $1" | grep -v grep | awk '{print $2}'`
+pid=`cat $1-pid.txt`
 tail --pid=$pid -f /dev/null
 # rm -rf $1
 # cp -r $1-backup $1
