@@ -197,18 +197,18 @@ public class DBWrapper extends DB {
         //LOGGER.info("receive reply from replicator");
         int batchSize = reply.getBatchSize();
         opsdone.accumulate(batchSize);
-        long latency = System.nanoTime() - reply.getTime(0);
+        long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
         for (int i = 0; i < batchSize; i++) {
           String status = reply.getStatus(i);
           switch (reply.getType(i)) {
             case READ:
-              measurements.measure("READ-" + status, (int)latency);
+              measurements.measure("READ", (int)latency);
               break;
             case UPDATE:
-              measurements.measure("UPDATE-" + status, (int)latency);
+              measurements.measure("UPDATE", (int)latency);
               break;
             case INSERT:
-              measurements.measure("INSERT-" + status, (int)latency);
+              measurements.measure("INSERT", (int)latency);
               break;
             default:
               LOGGER.error("Unsupported type!");

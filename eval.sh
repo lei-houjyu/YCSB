@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 if [ $# -lt 5 ]; then
     echo "Usage: bash eval.sh replicator_port mode(run or load) workload ip_0 ... ip_N"
     exit
@@ -23,7 +25,7 @@ for i in $(seq 1 $shard_num)
 do
     for j in $(seq 1 $#)
     do
-        ssh ${USER}@${cur_ip} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} &"
+        ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null &"
     done
 done
 for i in $(seq 1 $shard_num)
@@ -69,7 +71,7 @@ echo $replicator_args
 ./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
 
 # start ycsb
-bash $mode.sh $workload localhost:$port $shard_num > ycsb.out 2>&1
+bash $mode.sh $workload localhost:$port $shard_num 100 > ycsb.out 2>&1
 grep Throughput ycsb.out
 
 # kill replicator, heads, and tails
