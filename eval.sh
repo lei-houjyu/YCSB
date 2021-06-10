@@ -68,9 +68,16 @@ do
 done
 
 echo $replicator_args
-iostat -y 1 > iostat.out &
 # start the replicator
 ./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
+
+# start iostat
+for j in $(seq 1 $#)
+do
+    cur_ip=${ip[$j-1]}
+    ssh ${USER}@${cur_ip} "nohup iostat -yt 1 > iostat.out &"
+done
+iostat -yt 1 > iostat.out &
 
 # start ycsb
 bash $mode.sh $workload localhost:$port $shard_num $sleep_ms > ycsb.out 2>&1
