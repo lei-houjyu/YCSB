@@ -19,6 +19,8 @@ import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAccumulator;
+import java.util.concurrent.CountDownLatch;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -40,6 +42,11 @@ public class ChainNode {
   private static final String HEAD = "head";
   private static final String MID  = "mid";
   private static final String TAIL = "tail";
+  private final LongAccumulator readOpsDone = new LongAccumulator(Long::sum, 0L);
+  private final LongAccumulator writeOpsDone = new LongAccumulator(Long::sum, 0L);
+  private final Thread statusThread;
+  private final CountDownLatch latch = new CountDownLatch(1);
+  private final int statusIntervalNS;
 
   public ChainNode() {
     this.port = Integer.parseInt(props.getProperty("port"));
@@ -55,6 +62,7 @@ public class ChainNode {
     this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
     this.table = props.getProperty("table", "usertable");
     String dbname = props.getProperty("db", "site.ycsb.BasicDB");
+    statusIntervalNS = 1000000 * Integer.parseInt(props.getProperty("status.interval", "10"));
 
     try {
       ClassLoader classLoader = DBFactory.class.getClassLoader();
@@ -65,6 +73,27 @@ public class ChainNode {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    
+    statusThread = new Thread() {
+      @Override
+      public void run() {
+        boolean alldone = false;
+        while (!alldone) {
+          long readOld = readOpsDone.longValue();
+          long writeOld = readOpsDone.longValue();
+          try {
+            alldone = latch.await(statusIntervalNS, TimeUnit.NANOSECONDS);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            alldone = true;
+          }
+          double readRate = (readOpsDone.longValue() - readOld) * 1.0E9 / statusIntervalNS;
+          double writeRate = (writeOpsDone.longValue() - writeOld) * 1.0E9 / statusIntervalNS;
+          LOGGER.info("Overall {} ops/sec READ {} ops/sec Write {} ops/sec", 
+              readRate + writeRate, readRate, writeRate);
+        }
+      }
+    };
   }
 
   /** Start serving requests. */
@@ -86,6 +115,13 @@ public class ChainNode {
   }
 
   public void stop() throws InterruptedException {
+    statusThread.interrupt();
+    try {
+      statusThread.join();
+    } catch (InterruptedException ignored) {
+      // ignored
+    }
+
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
     }
@@ -146,6 +182,7 @@ public class ChainNode {
 
           for (int i = 0; i < batchSize; i++) {
             Status res = processRead(request, i);
+            readOpsDone.accumulate(1);
             if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
             }
@@ -206,6 +243,7 @@ public class ChainNode {
 
           for (int i = 0; i < batchSize; i++) {
             Status res = processWrite(request, i);
+            writeOpsDone.accumulate(1);
             if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
             }

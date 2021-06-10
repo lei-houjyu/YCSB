@@ -20,6 +20,7 @@ sleep 5
 # start nodes from tail to head
 ip=($*)
 replicator_args=''
+sleep_ms=100
 # cp the dataset in parallel
 for i in $(seq 1 $shard_num)
 do
@@ -40,7 +41,7 @@ do
         case $i in
             1)
             replicator_args='-p tail'${j}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null $sleep_ms > nohup.out 2>&1 &"
             ;;
 
             $shard_num)
@@ -50,11 +51,11 @@ do
                 chain=`expr $chain + $shard_num`
             fi
             replicator_args='-p head'${chain}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 &"
             ;;
 
             *)
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 &"
             ;;
         esac
     done
@@ -71,7 +72,7 @@ echo $replicator_args
 ./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
 
 # start ycsb
-bash $mode.sh $workload localhost:$port $shard_num 100 > ycsb.out 2>&1
+bash $mode.sh $workload localhost:$port $shard_num $sleep_ms > ycsb.out 2>&1
 grep Throughput ycsb.out
 
 # kill replicator, heads, and tails
