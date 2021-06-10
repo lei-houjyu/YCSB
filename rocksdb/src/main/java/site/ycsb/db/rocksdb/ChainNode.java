@@ -80,7 +80,7 @@ public class ChainNode {
         boolean alldone = false;
         while (!alldone) {
           long readOld = readOpsDone.longValue();
-          long writeOld = readOpsDone.longValue();
+          long writeOld = writeOpsDone.longValue();
           try {
             alldone = latch.await(statusIntervalNS, TimeUnit.NANOSECONDS);
           } catch (InterruptedException e) {

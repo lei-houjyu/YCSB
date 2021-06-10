@@ -68,6 +68,7 @@ do
 done
 
 echo $replicator_args
+iostat -y 1 > iostat.out &
 # start the replicator
 ./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
 
