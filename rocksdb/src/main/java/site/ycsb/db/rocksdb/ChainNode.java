@@ -99,6 +99,7 @@ public class ChainNode {
   /** Start serving requests. */
   public void start() throws IOException {
     server.start();
+    statusThread.start();
     LOGGER.info("Server started, listening on " + port);
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
