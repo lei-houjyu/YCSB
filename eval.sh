@@ -3,14 +3,15 @@
 set -x
 
 if [ $# -lt 5 ]; then
-    echo "Usage: bash eval.sh replicator_port mode(run or load) workload ip_0 ... ip_N"
+    echo "Usage: bash eval.sh replicator_port mode(run or load) workload target_rate ip_0 ... ip_N"
     exit
 fi
 
 port=$1
 mode=$2
 workload=$3
-shift 3
+rate=$4
+shift 4
 shard_num=$#
 
 # kill zumbie replicator, heads, and tails
@@ -20,7 +21,7 @@ sleep 5
 # start nodes from tail to head
 ip=($*)
 replicator_args=''
-sleep_ms=100
+sleep_ms=1000
 # cp the dataset in parallel
 for i in $(seq 1 $shard_num)
 do
@@ -41,7 +42,7 @@ do
         case $i in
             1)
             replicator_args='-p tail'${j}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null $sleep_ms > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
             ;;
 
             $shard_num)
@@ -51,11 +52,11 @@ do
                 chain=`expr $chain + $shard_num`
             fi
             replicator_args='-p head'${chain}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
             ;;
 
             *)
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 &"
+            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
             ;;
         esac
     done
@@ -75,12 +76,14 @@ echo $replicator_args
 for j in $(seq 1 $#)
 do
     cur_ip=${ip[$j-1]}
-    ssh ${USER}@${cur_ip} "nohup iostat -yt 1 > iostat.out &"
+    # ssh ${USER}@${cur_ip} "nohup iostat -yt 1 > iostat.out &"
+    ssh ${USER}@${cur_ip} "nohup dstat --output dstat.csv > dstat.out &"
 done
-iostat -yt 1 > iostat.out &
+# iostat -yt 1 > iostat.out &
+dstat --output dstat.csv > dstat.out &
 
 # start ycsb
-bash $mode.sh $workload localhost:$port $shard_num $sleep_ms > ycsb.out 2>&1
+bash $mode.sh $workload localhost:$port $shard_num $sleep_ms $rate > ycsb.out 2>&1
 grep Throughput ycsb.out
 
 # kill replicator, heads, and tails

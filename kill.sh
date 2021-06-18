@@ -5,8 +5,8 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
-sudo killall java iostat
+sudo killall java python2
 for ip in $*
 do
-    ssh ${USER}@${ip} "sudo killall java iostat"
+    ssh ${USER}@${ip} "sudo killall java python2"
 done

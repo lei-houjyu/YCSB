@@ -69,7 +69,7 @@ public class DBWrapper extends DB {
   private final String scopeStringUpdate;
 
   // [Rubble]
-  private static final Semaphore LIMITER = new Semaphore(512);
+  private static final Semaphore LIMITER = new Semaphore(128);
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private ManagedChannel channel;
   private ReplicationServiceStub asyncStub;
@@ -228,7 +228,7 @@ public class DBWrapper extends DB {
       @Override
       public void onCompleted() {
         //LOGGER.info("onCompleted from replicator");
-        LIMITER.release();
+        // LIMITER.release();
       }
     };
 
@@ -246,7 +246,7 @@ public class DBWrapper extends DB {
       }
     }
 
-    LIMITER.acquire();
+    // LIMITER.acquire();
     // LOGGER.info("send batch " + batchSize);
     builder.addTime(System.nanoTime());
     requestObserver.onNext(builder.build());
