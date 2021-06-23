@@ -1,80 +1,68 @@
-<!--
-Copyright (c) 2010 Yahoo! Inc., 2012 - 2016 YCSB contributors.
-All rights reserved.
+# Overview
 
-Licensed under the Apache License, Version 2.0 (the "License"); you
-may not use this file except in compliance with the License. You
-may obtain a copy of the License at
+This tutorial shows how to run the experiments with one YCSB, one replicator, and three key shards. Each key shard is a chain replication group consisting of three nodes, namely head, mid, and tail.
 
-http://www.apache.org/licenses/LICENSE-2.0
+You can get the same setting by starting a CloudLab experiment with four linked `m510` machines or using our [profile](https://www.cloudlab.us/p/3d6452a6-c413-11eb-b1eb-e4434b2381fc).
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-implied. See the License for the specific language governing
-permissions and limitations under the License. See accompanying
-LICENSE file.
--->
+Once the experiment is up, you will see four nodes indexed from 0 to 3, whose IPs are `10.10.1.1`, `10.10.1.2`, `10.10.1.3`, and `10.10.1.4`.
 
-YCSB
-====================================
-[![Build Status](https://travis-ci.org/brianfrankcooper/YCSB.png?branch=master)](https://travis-ci.org/brianfrankcooper/YCSB)
+We have the YCSB and replicator on `node-0` and the rest RocksDB instances on `node-1` to `node-3`.
 
+The topology is:
 
+* node-0: YCSB and replicator
 
-Links
------
-* To get here, use https://ycsb.site
-* [Our project docs](https://github.com/brianfrankcooper/YCSB/wiki)
-* [The original announcement from Yahoo!](https://labs.yahoo.com/news/yahoo-cloud-serving-benchmark/)
+* node-1: tail-1, mid-3, head-2
 
-Getting Started
----------------
+* node-2: tail-2, mid-1, head-3
 
-1. Download the [latest release of YCSB](https://github.com/brianfrankcooper/YCSB/releases/latest):
+* node-3: tail-3, mid-2, head-1
 
-    ```sh
-    curl -O --location https://github.com/brianfrankcooper/YCSB/releases/download/0.17.0/ycsb-0.17.0.tar.gz
-    tar xfvz ycsb-0.17.0.tar.gz
-    cd ycsb-0.17.0
-    ```
-    
-2. Set up a database to benchmark. There is a README file under each binding 
-   directory.
+# Preparation
 
-3. Run YCSB command. 
+The commands in this section need to be executed on every node.
 
-    On Linux:
-    ```sh
-    bin/ycsb.sh load basic -P workloads/workloada
-    bin/ycsb.sh run basic -P workloads/workloada
-    ```
+```bash
+# Install dependencies
+$ sudo apt install maven openjdk-11-jdk libsnappy-dev libbz2-dev liblz4-dev libzstd-dev dstat
 
-    On Windows:
-    ```bat
-    bin/ycsb.bat load basic -P workloads\workloada
-    bin/ycsb.bat run basic -P workloads\workloada
-    ```
+# Get YCSB source code
+$ git clone https://github.com/cc4351/YCSB.git
+$ cd YCSB
+$ git fetch origin lhy_dev
+$ git checkout lhy_dev
+$ cd ..
+$ for i in {1..3}; do cp -r YCSB YCSB-$i; cd YCSB-$i; bash build.sh; cd -; done
 
-  Running the `ycsb` command without any argument will print the usage. 
-   
-  See https://github.com/brianfrankcooper/YCSB/wiki/Running-a-Workload
-  for a detailed documentation on how to run a workload.
+# Mount NVMe devices
+$ sudo mkfs.ext4 /dev/nvme0n1p4
+$ sudo mkdir /mnt/sdb
+$ sudo mount /dev/nvme0n1p4 /mnt/sdb/
+$ sudo chown -R $USER:lsm-rep-PG0 /mnt/sdb/
+```
 
-  See https://github.com/brianfrankcooper/YCSB/wiki/Core-Properties for 
-  the list of available workload properties.
+# Build and run
 
+You only need to run the following command on `node-0`, where the YCSB and replicator sit. 
 
-Building from source
---------------------
+```bash
+$ bash build.sh 
+```
 
-YCSB requires the use of Maven 3; if you use Maven 2, you may see [errors
-such as these](https://github.com/brianfrankcooper/YCSB/issues/406).
+Before we run the experiment, we need to load the database. Basically, the command starts the YCSB and runs the replicator on port `8980`. It tells the YCSB to `load` the database according to the config file `workloads/workloada`. Following is a target request rate of `30000` and the IP addresses of the other three nodes.
 
-To build the full distribution, with all database bindings:
+```bash
+$ bash eval.sh 8980 load a 30000 10.10.1.1 10.10.1.3 10.10.1.4
+```
 
-    mvn clean package
+Next, we need to backup the database to avoid redundant loading. Run the next command on nodes 1 to 3.
 
-To build a single database binding:
+```bash
+$ for i in {1..3}; do mv /mnt/sdb/rocksdb-$i /mnt/sdb/rocksdb-$i-backup; done
+```
 
-    mvn -pl site.ycsb:mongodb-binding -am clean package
+Finally, we can run the experiment by simply replacing `load` to `run`. Replicator and YCSB's output are `replicator.out` and `ycsb.out`, respectively.
+
+```bash
+$ bash eval.sh 8980 run a 30000 10.10.1.1 10.10.1.3 10.10.1.4
+```
