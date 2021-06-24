@@ -13,6 +13,8 @@ import site.ycsb.*;
 import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
 
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 
@@ -30,6 +32,7 @@ public class Replicator {
   private final ManagedChannel[] tailChannel;
   private final ReplicationServiceStub[] headStub;
   private final ReplicationServiceStub[] tailStub;
+  private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
   
   public Replicator() throws IOException {
@@ -41,7 +44,8 @@ public class Replicator {
     this.headStub = new ReplicationServiceStub[shardNum];
     this.tailStub = new ReplicationServiceStub[shardNum];
     this.port = Integer.parseInt(props.getProperty("port"));
-    this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
+    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new ReplicationService());
+    this.server = serverBuilder.executor(threadPoolExecutor).build();
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+(i+1));
       tailNode[i] = props.getProperty("tail"+(i+1));
@@ -71,6 +75,7 @@ public class Replicator {
 
   public void stop() throws InterruptedException {
     if (server != null) {
+      threadPoolExecutor.shutdownNow();
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
     }
     for (int i = 0; i < shardNum; i++) {

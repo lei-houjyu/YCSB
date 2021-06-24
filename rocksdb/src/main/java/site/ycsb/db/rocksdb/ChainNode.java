@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -47,6 +49,7 @@ public class ChainNode {
   private final Thread statusThread;
   private final CountDownLatch latch = new CountDownLatch(1);
   private final int statusIntervalNS;
+  private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
 
   public ChainNode() {
     this.port = Integer.parseInt(props.getProperty("port"));
@@ -59,7 +62,8 @@ public class ChainNode {
       this.nextChannel = ManagedChannelBuilder.forTarget(nextNode).usePlaintext().build();
       this.nextStub = ReplicationServiceGrpc.newStub(this.nextChannel);
     }
-    this.server = ServerBuilder.forPort(port).addService(new ReplicationService()).build();
+    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new ReplicationService());
+    this.server = serverBuilder.executor(threadPoolExecutor).build();
     this.table = props.getProperty("table", "usertable");
     String dbname = props.getProperty("db", "site.ycsb.BasicDB");
     statusIntervalNS = 1000000 * Integer.parseInt(props.getProperty("status.interval", "10"));
@@ -124,6 +128,7 @@ public class ChainNode {
     }
 
     if (server != null) {
+      threadPoolExecutor.shutdownNow();
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
     }
     if (nextChannel != null) {
