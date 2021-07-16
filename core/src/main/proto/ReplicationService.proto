@@ -8,8 +8,7 @@ option objc_class_prefix = "RTG";
 package site.ycsb;
 
 service ReplicationService {
-  rpc write (stream Request) returns (stream Reply) {}
-  rpc read  (stream Request) returns (stream Reply) {}
+  rpc doOp (stream Request) returns (stream Reply) {}
 }
 
 enum OpType {

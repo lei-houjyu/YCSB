@@ -233,8 +233,7 @@ public class DBWrapper extends DB {
     };
 
 
-    StreamObserver<Request> requestObserver = 
-        isWrite ? asyncStub.write(replyObserver) : asyncStub.read(replyObserver);
+    StreamObserver<Request> requestObserver = asyncStub.doOp(replyObserver);
 
     Request.Builder builder = Request.newBuilder();
     builder.setBatchSize(batchSize);

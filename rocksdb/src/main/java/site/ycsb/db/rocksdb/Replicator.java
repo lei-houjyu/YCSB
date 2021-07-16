@@ -106,14 +106,16 @@ public class Replicator {
     ReplicationService() {}
 
     @Override
-    public StreamObserver<Request> read(final StreamObserver<Reply> responseObserver) {
+    public StreamObserver<Request> doOp(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() { 
         @Override
         public void onNext(Request request) {
           //LOGGER.info("send read request to tail");
           int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % shardNum);
-          StreamObserver<Request> tailObserver =
-              tailStub[shard].read(new StreamObserver<Reply>() {
+          ReplicationServiceStub stub =
+              request.getType(0) == OpType.READ ? tailStub[shard] : headStub[shard];
+          StreamObserver<Request> observer =
+              stub.doOp(new StreamObserver<Reply>() {
                   @Override
                   public void onNext(Reply reply) {
                     //LOGGER.info("receive read reply from tail " + reply.getStatus(0) + " " + reply.getContent(0));
@@ -133,8 +135,8 @@ public class Replicator {
                     responseObserver.onCompleted();
                   }
               });
-          tailObserver.onNext(request);
-          tailObserver.onCompleted();
+          observer.onNext(request);
+          observer.onCompleted();
         }
 
         @Override
@@ -145,50 +147,6 @@ public class Replicator {
         @Override
         public void onCompleted() {
           //LOGGER.info("onCompleted to tail");
-        }
-      };
-    }
-
-    @Override
-    public StreamObserver<Request> write(final StreamObserver<Reply> responseObserver) {
-      return new StreamObserver<Request>() {
-        @Override
-        public void onNext(Request request) {
-          //LOGGER.info("send write request to head");
-          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % shardNum);
-          StreamObserver<Request> headObserver = 
-              headStub[shard].write(new StreamObserver<Reply>() {
-                  @Override
-                  public void onNext(Reply reply) {
-                    //LOGGER.info("receive write reply from tail " + reply.getStatus(0) + " " + reply.getContent(0));
-                    //LOGGER.info("reply to YCSB");
-                    responseObserver.onNext(reply);
-                  }
-
-                  @Override
-                  public void onError(Throwable t) {
-                    LOGGER.error("error in write", t);
-                  }
-
-                  @Override
-                  public void onCompleted() {
-                    //LOGGER.info("onCompleted from tail");
-                    //LOGGER.info("onCompleted to YCSB");
-                    responseObserver.onCompleted();
-                  }
-              });
-          headObserver.onNext(request);
-          headObserver.onCompleted();
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          LOGGER.error("Encountered error in write", t);
-        }
-
-        @Override
-        public void onCompleted() {
-          //LOGGER.info("onCompleted to head");
         }
       };
     }

@@ -160,15 +160,26 @@ public class ChainNode {
     ReplicationService() {}
 
     @Override
-    public StreamObserver<Request> read(final StreamObserver<Reply> responseObserver) {
+    public StreamObserver<Request> doOp(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<Request>() {
-        public Status processRead(Request request, int i) {
+        public Status process(Request request, int i) {
           OpType type = request.getType(i);
           String key = request.getKey(i);
+          String value = null;
           Map<String, ByteIterator> values = new HashMap<>();
           switch (type) {
             case READ:
               return db.read(table, key, null, values);
+
+            case INSERT:
+              value = request.getValue(i);
+              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
+              return db.insert(table, key, values);
+
+            case UPDATE:
+              value = request.getValue(i);
+              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
+              return db.update(table, key, values);
 
             case SCAN:
             default:
@@ -182,74 +193,18 @@ public class ChainNode {
         @Override
         public void onNext(Request request) {
           //LOGGER.info("receive request from previous node");
+          boolean isWrite = request.getType(0) != OpType.READ;
           Reply.Builder builder = Reply.newBuilder();
           int batchSize = request.getBatchSize();
           builder.setBatchSize(batchSize);
 
           for (int i = 0; i < batchSize; i++) {
-            Status res = processRead(request, i);
-            readOpsDone.accumulate(1);
-            if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
-              LOGGER.error("Some request failed!");
+            Status res = process(request, i);
+            if (isWrite) {
+              writeOpsDone.accumulate(1);
+            } else {
+              readOpsDone.accumulate(1);
             }
-            builder.addStatus(res.getName());
-            builder.addType(request.getType(i));
-          }
-
-          //LOGGER.info("reply to replicator");
-          builder.addTime(request.getTime(0));
-          responseObserver.onNext(builder.build());
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          LOGGER.error("Encountered error in read", t);
-        }
-
-        @Override
-        public void onCompleted() {
-          responseObserver.onCompleted();
-        }
-      };
-    }
-
-    @Override
-    public StreamObserver<Request> write(final StreamObserver<Reply> responseObserver) {
-      return new StreamObserver<Request>() {
-        public Status processWrite(Request request, int i) {
-          OpType type = request.getType(i);
-          String key = request.getKey(i);
-          String value = null;
-          Map<String, ByteIterator> values = new HashMap<>();
-          switch (type) {
-            case INSERT:
-              value = request.getValue(i);
-              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              return db.insert(table, key, values);
-
-            case UPDATE:
-              value = request.getValue(i);
-              RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
-              return db.update(table, key, values);
-        
-            default:
-              System.err.println("Unsupported op type: " + type);
-              break;
-          }
-
-          return Status.ERROR;
-        }
-
-        @Override
-        public void onNext(Request request) {
-          //LOGGER.info("receive request from previous node");
-          Reply.Builder builder = Reply.newBuilder();
-          int batchSize = request.getBatchSize();
-          builder.setBatchSize(batchSize);
-
-          for (int i = 0; i < batchSize; i++) {
-            Status res = processWrite(request, i);
-            writeOpsDone.accumulate(1);
             if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
             }
@@ -264,7 +219,7 @@ public class ChainNode {
             responseObserver.onCompleted();
           } else {
             //LOGGER.info("forward to next node");
-            StreamObserver<Request> requestObserver = nextStub.write(responseObserver);
+            StreamObserver<Request> requestObserver = nextStub.doOp(responseObserver);
             requestObserver.onNext(request);
             requestObserver.onCompleted();
           }
@@ -272,7 +227,7 @@ public class ChainNode {
 
         @Override
         public void onError(Throwable t) {
-          LOGGER.error("Encountered error in write", t);
+          LOGGER.error("Encountered error in read", t);
         }
 
         @Override
