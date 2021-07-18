@@ -15,7 +15,7 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
+import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +40,7 @@ public class ChainNode {
   private final String table;
   private final String nodeType;
   private final ManagedChannel nextChannel;
-  private final ReplicationServiceStub nextStub;
+  private final RubbleKvStoreServiceStub nextStub;
   private static final String HEAD = "head";
   private static final String MID  = "mid";
   private static final String TAIL = "tail";
@@ -60,9 +60,9 @@ public class ChainNode {
     } else {
       String nextNode = props.getProperty("next.node");
       this.nextChannel = ManagedChannelBuilder.forTarget(nextNode).usePlaintext().build();
-      this.nextStub = ReplicationServiceGrpc.newStub(this.nextChannel);
+      this.nextStub = RubbleKvStoreServiceGrpc.newStub(this.nextChannel);
     }
-    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new ReplicationService());
+    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.executor(threadPoolExecutor).build();
     this.table = props.getProperty("table", "usertable");
     String dbname = props.getProperty("db", "site.ycsb.BasicDB");
@@ -156,32 +156,31 @@ public class ChainNode {
     server.blockUntilShutdown();
   }
 
-  private class ReplicationService extends ReplicationServiceGrpc.ReplicationServiceImplBase {
-    ReplicationService() {}
+  private class RubbleKvStoreService extends RubbleKvStoreServiceGrpc.RubbleKvStoreServiceImplBase {
+    RubbleKvStoreService() {}
 
     @Override
-    public StreamObserver<Request> doOp(final StreamObserver<Reply> responseObserver) {
-      return new StreamObserver<Request>() {
-        public Status process(Request request, int i) {
-          OpType type = request.getType(i);
-          String key = request.getKey(i);
+    public StreamObserver<Op> doOp(final StreamObserver<OpReply> responseObserver) {
+      return new StreamObserver<Op>() {
+        public Status process(Op request, int i) {
+          OpType type = request.getOps(i).getType();
+          String key = request.getOps(i).getKey();
           String value = null;
           Map<String, ByteIterator> values = new HashMap<>();
           switch (type) {
-            case READ:
+            case GET:
               return db.read(table, key, null, values);
 
-            case INSERT:
-              value = request.getValue(i);
+            case PUT:
+              value = request.getOps(i).getValue();
               RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
               return db.insert(table, key, values);
 
             case UPDATE:
-              value = request.getValue(i);
+              value = request.getOps(i).getValue();
               RocksDBClient.deserializeValues(value.getBytes(UTF_8), null, values);
               return db.update(table, key, values);
 
-            case SCAN:
             default:
               System.err.println("Unsupported op type: " + type);
               break;
@@ -191,10 +190,11 @@ public class ChainNode {
         }
 
         @Override
-        public void onNext(Request request) {
+        public void onNext(Op request) {
           //LOGGER.info("receive request from previous node");
-          boolean isWrite = request.getType(0) != OpType.READ;
-          Reply.Builder builder = Reply.newBuilder();
+          boolean isWrite = request.getOps(0).getType() != OpType.GET;
+          OpReply.Builder builder = OpReply.newBuilder();
+          SingleOpReply.Builder replyBuilder = SingleOpReply.newBuilder();
           int batchSize = request.getBatchSize();
           builder.setBatchSize(batchSize);
 
@@ -207,9 +207,13 @@ public class ChainNode {
             }
             if (!res.isOk() && !res.equals(Status.NOT_FOUND)) {
               LOGGER.error("Some request failed!");
+              replyBuilder.setOk(false);
+            } else {
+              replyBuilder.setOk(true);
             }
-            builder.addStatus(res.getName());
-            builder.addType(request.getType(i));
+            replyBuilder.setStatus(res.getName());
+            replyBuilder.setType(request.getOps(i).getType());
+            builder.addReplies(replyBuilder.build());
           }
 
           if (nodeType.equals(TAIL)) {
@@ -219,7 +223,7 @@ public class ChainNode {
             responseObserver.onCompleted();
           } else {
             //LOGGER.info("forward to next node");
-            StreamObserver<Request> requestObserver = nextStub.doOp(responseObserver);
+            StreamObserver<Op> requestObserver = nextStub.doOp(responseObserver);
             requestObserver.onNext(request);
             requestObserver.onCompleted();
           }

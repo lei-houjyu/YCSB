@@ -37,7 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
+import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 
 import java.util.concurrent.TimeUnit;
 
@@ -72,7 +72,7 @@ public class DBWrapper extends DB {
   private static final Semaphore LIMITER = new Semaphore(128);
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private ManagedChannel channel;
-  private ReplicationServiceStub asyncStub;
+  private RubbleKvStoreServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   private int shardNum;
   // write batch
@@ -149,7 +149,7 @@ public class DBWrapper extends DB {
 
     // [Rubble]
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
-    asyncStub = ReplicationServiceGrpc.newStub(channel);
+    asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
     shardNum = Integer.parseInt(getProperties().getProperty("shard"));
     writeTypes = new OpType[shardNum][DB.BATCHSIZE];
     writeKeys  = new String[shardNum][DB.BATCHSIZE];
@@ -191,31 +191,30 @@ public class DBWrapper extends DB {
     if (batchSize == 0) {
       return;
     }
-    StreamObserver<Reply> replyObserver = new StreamObserver<Reply>() {
+    StreamObserver<OpReply> replyObserver = new StreamObserver<OpReply>() {
       @Override
-      public void onNext(Reply reply) {
+      public void onNext(OpReply reply) {
         //LOGGER.info("receive reply from replicator");
         int batchSize = reply.getBatchSize();
         opsdone.accumulate(batchSize);
         long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
         for (int i = 0; i < batchSize; i++) {
-          String status = reply.getStatus(i);
-          switch (reply.getType(i)) {
-            case READ:
+          switch (reply.getReplies(i).getType()) {
+            case GET:
               measurements.measure("READ", (int)latency);
               break;
             case UPDATE:
               measurements.measure("UPDATE", (int)latency);
               break;
-            case INSERT:
+            case PUT:
               measurements.measure("INSERT", (int)latency);
               break;
             default:
               LOGGER.error("Unsupported type!");
               break;
           }
-          if (!status.equals("OK") && !status.equals("NOT_FOUND")) {
-            LOGGER.error(reply.getStatus(i));
+          if (!reply.getReplies(i).getOk()) {
+            LOGGER.error(reply.getReplies(i).getStatus());
           }
         }
       }
@@ -233,16 +232,18 @@ public class DBWrapper extends DB {
     };
 
 
-    StreamObserver<Request> requestObserver = asyncStub.doOp(replyObserver);
+    StreamObserver<Op> requestObserver = asyncStub.doOp(replyObserver);
 
-    Request.Builder builder = Request.newBuilder();
+    Op.Builder builder = Op.newBuilder();
+    SingleOp.Builder opBuilder = SingleOp.newBuilder();
     builder.setBatchSize(batchSize);
     for (int i = 0; i < batchSize; i++) {
-      builder.addType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
-      builder.addKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
+      opBuilder.setType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
+      opBuilder.setKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
       if (isWrite) {
-        builder.addValue(writeVals[shard][i]);
+        opBuilder.setValue(writeVals[shard][i]);
       }
+      builder.addOps(opBuilder.build());
     }
 
     // LIMITER.acquire();
@@ -276,7 +277,7 @@ public class DBWrapper extends DB {
       // [Rubble]: send this op to replicator
       try {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        readTypes[idx][readBatchSize[idx]] = OpType.READ;
+        readTypes[idx][readBatchSize[idx]] = OpType.PUT;
         readKeys[idx][readBatchSize[idx]] = key;
         readBatchSize[idx]++;
         if (readBatchSize[idx] == DB.BATCHSIZE) {
@@ -390,7 +391,7 @@ public class DBWrapper extends DB {
       // [Rubble]: send this op to replicator
       try {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        writeTypes[idx][writeBatchSize[idx]] = OpType.INSERT;
+        writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
         writeBatchSize[idx]++;

@@ -10,7 +10,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import site.ycsb.*;
-import site.ycsb.ReplicationServiceGrpc.ReplicationServiceStub;
+import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -30,8 +30,8 @@ public class Replicator {
   private final Server server;
   private final ManagedChannel[] headChannel;
   private final ManagedChannel[] tailChannel;
-  private final ReplicationServiceStub[] headStub;
-  private final ReplicationServiceStub[] tailStub;
+  private final RubbleKvStoreServiceStub[] headStub;
+  private final RubbleKvStoreServiceStub[] tailStub;
   private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
   
@@ -41,18 +41,18 @@ public class Replicator {
     String[] tailNode = new String [shardNum];
     this.headChannel = new ManagedChannel[shardNum];
     this.tailChannel = new ManagedChannel[shardNum];
-    this.headStub = new ReplicationServiceStub[shardNum];
-    this.tailStub = new ReplicationServiceStub[shardNum];
+    this.headStub = new RubbleKvStoreServiceStub[shardNum];
+    this.tailStub = new RubbleKvStoreServiceStub[shardNum];
     this.port = Integer.parseInt(props.getProperty("port"));
-    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new ReplicationService());
+    ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.executor(threadPoolExecutor).build();
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+(i+1));
       tailNode[i] = props.getProperty("tail"+(i+1));
       this.headChannel[i] = ManagedChannelBuilder.forTarget(headNode[i]).usePlaintext().build();
       this.tailChannel[i] = ManagedChannelBuilder.forTarget(tailNode[i]).usePlaintext().build();
-      this.headStub[i] = ReplicationServiceGrpc.newStub(this.headChannel[i]);
-      this.tailStub[i] = ReplicationServiceGrpc.newStub(this.tailChannel[i]);
+      this.headStub[i] = RubbleKvStoreServiceGrpc.newStub(this.headChannel[i]);
+      this.tailStub[i] = RubbleKvStoreServiceGrpc.newStub(this.tailChannel[i]);
     }
   }
 
@@ -102,22 +102,22 @@ public class Replicator {
     server.blockUntilShutdown();
   }
 
-  private class ReplicationService extends ReplicationServiceGrpc.ReplicationServiceImplBase {
-    ReplicationService() {}
+  private class RubbleKvStoreService extends RubbleKvStoreServiceGrpc.RubbleKvStoreServiceImplBase {
+    RubbleKvStoreService() {}
 
     @Override
-    public StreamObserver<Request> doOp(final StreamObserver<Reply> responseObserver) {
-      return new StreamObserver<Request>() { 
+    public StreamObserver<Op> doOp(final StreamObserver<OpReply> responseObserver) {
+      return new StreamObserver<Op>() { 
         @Override
-        public void onNext(Request request) {
+        public void onNext(Op request) {
           //LOGGER.info("send read request to tail");
-          int shard = (int)(Long.parseLong(request.getKey(0).substring(4)) % shardNum);
-          ReplicationServiceStub stub =
-              request.getType(0) == OpType.READ ? tailStub[shard] : headStub[shard];
-          StreamObserver<Request> observer =
-              stub.doOp(new StreamObserver<Reply>() {
+          int shard = (int)(Long.parseLong(request.getOps(0).getKey().substring(4)) % shardNum);
+          RubbleKvStoreServiceStub stub =
+              request.getOps(0).getType() == OpType.GET ? tailStub[shard] : headStub[shard];
+          StreamObserver<Op> observer =
+              stub.doOp(new StreamObserver<OpReply>() {
                   @Override
-                  public void onNext(Reply reply) {
+                  public void onNext(OpReply reply) {
                     //LOGGER.info("receive read reply from tail " + reply.getStatus(0) + " " + reply.getContent(0));
                     //LOGGER.info("reply to YCSB");
                     responseObserver.onNext(reply);
