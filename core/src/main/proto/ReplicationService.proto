@@ -2,10 +2,10 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "site.ycsb";
-option java_outer_classname = "RS";
-option objc_class_prefix = "RTG";
+option java_outer_classname = "Rubble";
+option objc_class_prefix = "Rub";
 
-package site.ycsb;
+package rubble;
 
 service RubbleKvStoreService {
     // an internal rpc call used by the upstream (except the tail node) 
@@ -34,19 +34,18 @@ message Op {
     repeated int64 time = 5;
 }
 
-// operation to perform on a db
-message SingleOp{
-    string key = 1;
-    string value = 2;
-    uint64 Id = 3;
-    OpType type = 4;
-}
-
 message OpReply {
     string sync_reply = 1;
     int32 batchSize = 2;
     repeated SingleOpReply replies = 3;
     repeated int64 time = 4;
+}
+
+message SingleOp{
+    string key = 1;
+    string value = 2;
+    uint64 Id = 3;
+    OpType type = 4;
 }
 
 message SingleOpReply{
