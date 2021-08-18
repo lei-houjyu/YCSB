@@ -28,15 +28,16 @@ enum OpType {
 
 message Op {
     bool has_edits = 1;
-    int32 batchSize = 2;
+    int32 clientIdx = 2;
     repeated string edits = 3;
     repeated SingleOp ops = 4;
     repeated int64 time = 5;
+    repeated string debug_info = 6;
 }
 
 message OpReply {
     string sync_reply = 1;
-    int32 batchSize = 2;
+    int32 client_idx = 2;
     repeated SingleOpReply replies = 3;
     repeated int64 time = 4;
 }

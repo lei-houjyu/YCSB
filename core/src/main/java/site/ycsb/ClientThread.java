@@ -30,9 +30,6 @@ public class ClientThread implements Runnable {
   // Counts down each of the clients completing.
   private final CountDownLatch completeLatch;
 
-  // [Rubble]
-  private static int shardNum;
-  // [Rubble]
   private static boolean spinSleep;
   private DB db;
   private boolean dotransactions;
@@ -65,6 +62,9 @@ public class ClientThread implements Runnable {
     this.dotransactions = dotransactions;
     this.workload = workload;
     this.opcount = opcount;
+    // [Rubble]
+    ((DBWrapper)db).setOpCount(opcount);
+    // [Rubble]
     opsdone = 0;
     if (targetperthreadperms > 0) {
       targetOpsPerMs = targetperthreadperms;
@@ -73,14 +73,14 @@ public class ClientThread implements Runnable {
     this.props = props;
     measurements = Measurements.getMeasurements();
     spinSleep = Boolean.valueOf(this.props.getProperty("spin.sleep", "false"));
-    // [Rubble]
-    shardNum = Integer.parseInt(this.props.getProperty("shard"));
-    // [Rubble]
     this.completeLatch = completeLatch;
   }
 
   public void setThreadId(final int threadId) {
     threadid = threadId;
+    // [Rubble]
+    ((DBWrapper)db).setThreadId(threadId);
+    // [Rubble]
   }
 
   public void setThreadCount(final int threadCount) {
@@ -137,10 +137,8 @@ public class ClientThread implements Runnable {
         }
 
         // [Rubble]
-        for (int i = 0; i < shardNum; i++) {
-          ((DBWrapper)db).sendBatch(true, i);
-          ((DBWrapper)db).sendBatch(false, i);
-        }
+        ((DBWrapper)db).sendBatch(true);
+        ((DBWrapper)db).sendBatch(false);
         // [Rubble]
       } else {
         long startTimeNanos = System.nanoTime();
@@ -156,9 +154,7 @@ public class ClientThread implements Runnable {
           throttleNanos(startTimeNanos);
         }
         // [Rubble]
-        for (int i = 0; i < shardNum; i++) {
-          ((DBWrapper)db).sendBatch(true, i);
-        }
+        ((DBWrapper)db).sendBatch(true);
         // [Rubble]
       }
     } catch (Exception e) {

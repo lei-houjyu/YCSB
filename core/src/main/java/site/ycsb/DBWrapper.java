@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.nio.ByteBuffer;
@@ -69,21 +68,23 @@ public class DBWrapper extends DB {
   private final String scopeStringUpdate;
 
   // [Rubble]
-  private static final Semaphore LIMITER = new Semaphore(128);
+  private int threadid;
+  private StreamObserver<Op> requestObserver;
+  private StreamObserver<OpReply> replyObserver;
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
+  private int opcount;
   private ManagedChannel channel;
   private RubbleKvStoreServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
-  private int shardNum;
   // write batch
-  private OpType[][] writeTypes;
-  private String[][] writeKeys;
-  private String[][] writeVals;
-  private int[] writeBatchSize;
+  private OpType[] writeTypes;
+  private String[] writeKeys;
+  private String[] writeVals;
+  private int writeBatchSize;
   // read batch
-  private OpType[][] readTypes;
-  private String[][] readKeys;
-  private int[] readBatchSize;
+  private OpType[] readTypes;
+  private String[] readKeys;
+  private int readBatchSize;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -103,6 +104,14 @@ public class DBWrapper extends DB {
   // [Rubble]
   public int getOpsDone() {
     return opsdone.intValue();
+  }
+
+  public void setThreadId(int threadId) {
+    this.threadid = threadId;
+  }
+
+  public void setOpCount(int c) {
+    this.opcount = c;
   }
   // [Rubble]
 
@@ -150,14 +159,56 @@ public class DBWrapper extends DB {
     // [Rubble]
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
     asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
-    shardNum = Integer.parseInt(getProperties().getProperty("shard"));
-    writeTypes = new OpType[shardNum][DB.BATCHSIZE];
-    writeKeys  = new String[shardNum][DB.BATCHSIZE];
-    writeVals  = new String[shardNum][DB.BATCHSIZE];
-    writeBatchSize = new int[shardNum];
-    readTypes = new OpType[shardNum][DB.BATCHSIZE];
-    readKeys  = new String[shardNum][DB.BATCHSIZE];
-    readBatchSize = new int[shardNum];
+    replyObserver = new StreamObserver<OpReply>() {
+      @Override
+      public void onNext(OpReply reply) {
+        //LOGGER.info("receive reply from replicator");
+        int batchSize = reply.getRepliesCount();
+        long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
+        for (int i = 0; i < batchSize; i++) {
+          switch (reply.getReplies(i).getType()) {
+            case GET:
+              measurements.measure("READ", (int)latency);
+              break;
+            case UPDATE:
+              measurements.measure("UPDATE", (int)latency);
+              break;
+            case PUT:
+              measurements.measure("INSERT", (int)latency);
+              break;
+            default:
+              LOGGER.error("Unsupported type!");
+              break;
+          }
+          if (!reply.getReplies(i).getOk()) {
+            LOGGER.error(reply.getReplies(i).getStatus());
+          }
+        }
+        opsdone.accumulate(batchSize);
+        if (opsdone.intValue() == opcount) {
+          requestObserver.onCompleted();
+        }
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOGGER.error("Encountered error in send", t);
+      }
+
+      @Override
+      public void onCompleted() {
+        LOGGER.info("onCompleted from replicator");
+        // LIMITER.release();
+      }
+    };
+    requestObserver = asyncStub.doOp(replyObserver);
+    writeTypes = new OpType[DB.BATCHSIZE];
+    writeKeys  = new String[DB.BATCHSIZE];
+    writeVals  = new String[DB.BATCHSIZE];
+    writeBatchSize = 0;
+    readTypes = new OpType[DB.BATCHSIZE];
+    readKeys  = new String[DB.BATCHSIZE];
+    readBatchSize = 0;
     // [Rubble]
   }
 
@@ -186,62 +237,21 @@ public class DBWrapper extends DB {
   }
 
   // [Rubble]
-  public void sendBatch(boolean isWrite, int shard) throws Exception {
-    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
+  public void sendBatch(boolean isWrite) throws Exception {
+    int batchSize = isWrite ? writeBatchSize : readBatchSize;
     if (batchSize == 0) {
       return;
     }
-    StreamObserver<OpReply> replyObserver = new StreamObserver<OpReply>() {
-      @Override
-      public void onNext(OpReply reply) {
-        //LOGGER.info("receive reply from replicator");
-        int batchSize = reply.getBatchSize();
-        opsdone.accumulate(batchSize);
-        long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
-        for (int i = 0; i < batchSize; i++) {
-          switch (reply.getReplies(i).getType()) {
-            case GET:
-              measurements.measure("READ", (int)latency);
-              break;
-            case UPDATE:
-              measurements.measure("UPDATE", (int)latency);
-              break;
-            case PUT:
-              measurements.measure("INSERT", (int)latency);
-              break;
-            default:
-              LOGGER.error("Unsupported type!");
-              break;
-          }
-          if (!reply.getReplies(i).getOk()) {
-            LOGGER.error(reply.getReplies(i).getStatus());
-          }
-        }
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        LOGGER.error("Encountered error in send", t);
-      }
-
-      @Override
-      public void onCompleted() {
-        //LOGGER.info("onCompleted from replicator");
-        // LIMITER.release();
-      }
-    };
-
-
-    StreamObserver<Op> requestObserver = asyncStub.doOp(replyObserver);
 
     Op.Builder builder = Op.newBuilder();
     SingleOp.Builder opBuilder = SingleOp.newBuilder();
-    builder.setBatchSize(batchSize);
+    builder.setHasEdits(false);
+    builder.setClientIdx(threadid);
     for (int i = 0; i < batchSize; i++) {
-      opBuilder.setType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
-      opBuilder.setKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
+      opBuilder.setType(isWrite ? writeTypes[i] : readTypes[i]);
+      opBuilder.setKey(isWrite ? writeKeys[i] : readKeys[i]);
       if (isWrite) {
-        opBuilder.setValue(writeVals[shard][i]);
+        opBuilder.setValue(writeVals[i]);
       }
       builder.addOps(opBuilder.build());
     }
@@ -250,11 +260,10 @@ public class DBWrapper extends DB {
     // LOGGER.info("send batch " + batchSize);
     builder.addTime(System.nanoTime());
     requestObserver.onNext(builder.build());
-    requestObserver.onCompleted();
     if (isWrite) {
-      writeBatchSize[shard] = 0;
+      writeBatchSize = 0;
     } else {
-      readBatchSize[shard] = 0;
+      readBatchSize = 0;
     }
   }
   // [Rubble]
@@ -276,14 +285,13 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        readTypes[idx][readBatchSize[idx]] = OpType.PUT;
-        readKeys[idx][readBatchSize[idx]] = key;
-        readBatchSize[idx]++;
-        if (readBatchSize[idx] == DB.BATCHSIZE) {
-          sendBatch(false, idx);
+        readTypes[readBatchSize] = OpType.GET;
+        readKeys[readBatchSize] = key;
+        readBatchSize++;
+        if (readBatchSize == DB.BATCHSIZE) {
+          sendBatch(false);
         }
-      } catch (Exception e) {
+      } catch (Exception e) { 
         e.printStackTrace();
       }
       long en = System.nanoTime();
@@ -352,13 +360,12 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        writeTypes[idx][writeBatchSize[idx]] = OpType.UPDATE;
-        writeKeys[idx][writeBatchSize[idx]] = key;
-        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
-        writeBatchSize[idx]++;
-        if (writeBatchSize[idx] == DB.BATCHSIZE) {
-          sendBatch(true, idx);
+        writeTypes[writeBatchSize] = OpType.UPDATE;
+        writeKeys[writeBatchSize] = key;
+        writeVals[writeBatchSize] = new String(serializeValues(values));
+        writeBatchSize++;
+        if (writeBatchSize == DB.BATCHSIZE) {
+          sendBatch(true);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -390,13 +397,12 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
-        writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
-        writeKeys[idx][writeBatchSize[idx]] = key;
-        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
-        writeBatchSize[idx]++;
-        if (writeBatchSize[idx] == DB.BATCHSIZE) {
-          sendBatch(true, idx);
+        writeTypes[writeBatchSize] = OpType.PUT;
+        writeKeys[writeBatchSize] = key;
+        writeVals[writeBatchSize] = new String(serializeValues(values));
+        writeBatchSize++;
+        if (writeBatchSize == DB.BATCHSIZE) {
+          sendBatch(true);
         }
       } catch (Exception e) {
         e.printStackTrace();

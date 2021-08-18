@@ -195,8 +195,7 @@ public class ChainNode {
           boolean isWrite = request.getOps(0).getType() != OpType.GET;
           OpReply.Builder builder = OpReply.newBuilder();
           SingleOpReply.Builder replyBuilder = SingleOpReply.newBuilder();
-          int batchSize = request.getBatchSize();
-          builder.setBatchSize(batchSize);
+          int batchSize = request.getOpsCount();
 
           for (int i = 0; i < batchSize; i++) {
             Status res = process(request, i);
