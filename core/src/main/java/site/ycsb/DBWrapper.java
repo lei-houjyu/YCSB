@@ -68,7 +68,8 @@ public class DBWrapper extends DB {
   private final String scopeStringUpdate;
 
   // [Rubble]
-  private int threadid;
+  private int shardIdx;
+  private int clientIdx;
   private StreamObserver<Op> requestObserver;
   private StreamObserver<OpReply> replyObserver;
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
@@ -106,8 +107,12 @@ public class DBWrapper extends DB {
     return opsdone.intValue();
   }
 
-  public void setThreadId(int threadId) {
-    this.threadid = threadId;
+  public void setShardIdx(int shardidx) {
+    this.shardIdx = shardidx;
+  }
+
+  public void setClientIdx(int clientidx) {
+    this.clientIdx = clientidx;
   }
 
   public void setOpCount(int c) {
@@ -246,7 +251,8 @@ public class DBWrapper extends DB {
     Op.Builder builder = Op.newBuilder();
     SingleOp.Builder opBuilder = SingleOp.newBuilder();
     builder.setHasEdits(false);
-    builder.setClientIdx(threadid);
+    builder.setShardIdx(shardIdx);
+    builder.setClientIdx(clientIdx);
     for (int i = 0; i < batchSize; i++) {
       opBuilder.setType(isWrite ? writeTypes[i] : readTypes[i]);
       opBuilder.setKey(isWrite ? writeKeys[i] : readKeys[i]);

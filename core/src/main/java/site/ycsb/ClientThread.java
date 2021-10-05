@@ -30,6 +30,9 @@ public class ClientThread implements Runnable {
   // Counts down each of the clients completing.
   private final CountDownLatch completeLatch;
 
+  // [Rubble]
+  private static int shardNum;
+  // [Rubble]
   private static boolean spinSleep;
   private DB db;
   private boolean dotransactions;
@@ -62,9 +65,6 @@ public class ClientThread implements Runnable {
     this.dotransactions = dotransactions;
     this.workload = workload;
     this.opcount = opcount;
-    // [Rubble]
-    ((DBWrapper)db).setOpCount(opcount);
-    // [Rubble]
     opsdone = 0;
     if (targetperthreadperms > 0) {
       targetOpsPerMs = targetperthreadperms;
@@ -74,17 +74,25 @@ public class ClientThread implements Runnable {
     measurements = Measurements.getMeasurements();
     spinSleep = Boolean.valueOf(this.props.getProperty("spin.sleep", "false"));
     this.completeLatch = completeLatch;
+    // [Rubble]
+    ((DBWrapper)db).setOpCount(opcount);
+    shardNum = Integer.parseInt(this.props.getProperty("shard"));
+    // [Rubble]    
   }
 
   public void setThreadId(final int threadId) {
     threadid = threadId;
     // [Rubble]
-    ((DBWrapper)db).setThreadId(threadId);
+    ((DBWrapper)db).setClientIdx(threadid);
     // [Rubble]
   }
 
   public void setThreadCount(final int threadCount) {
     threadcount = threadCount;
+    // [Rubble]
+    int threadPerShard = threadcount / shardNum;
+    ((DBWrapper)db).setShardIdx(threadid / threadPerShard);
+    // [Rubble]
   }
 
   public int getOpsDone() {

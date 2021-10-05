@@ -28,11 +28,14 @@ enum OpType {
 
 message Op {
     bool has_edits = 1;
-    int32 clientIdx = 2;
-    repeated string edits = 3;
-    repeated SingleOp ops = 4;
-    repeated int64 time = 5;
-    repeated string debug_info = 6;
+    int32 shard_idx = 2;
+    int32 client_idx = 3;
+    repeated string edits = 4;
+    repeated SingleOp ops = 5;
+    repeated int64 time = 6;
+    // int32 id = 6;
+    // repeated string status = 7;
+    // repeated string value = 8;
 }
 
 message OpReply {
@@ -75,32 +78,3 @@ message SyncRequest {
 message SyncReply {
     string message = 1;
 }
-  
-
-// service ReplicationService {
-//   rpc doOp (stream Request) returns (stream Reply) {}
-// }
-
-// enum OpType {
-//     READ   = 0;
-//     SCAN   = 1;
-//     INSERT = 2;
-//     UPDATE = 3;
-// }
-
-// message Request {
-//     int32 batchSize = 1;
-//     bool  has_edits = 2;
-//     repeated OpType type  = 3;
-//     repeated string key   = 4;
-//     repeated string value = 5;
-//     repeated int64  time  = 6;
-//     repeated string edits = 7;
-// }
-  
-// message Reply {
-//     int32 batchSize = 1;
-//     repeated OpType type   = 2;
-//     repeated string status = 3;
-//     repeated int64  time   = 4;
-// }

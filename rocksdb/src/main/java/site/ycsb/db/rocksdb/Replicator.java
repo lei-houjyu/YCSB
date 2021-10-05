@@ -12,6 +12,8 @@ import io.grpc.ManagedChannelBuilder;
 import site.ycsb.*;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +35,7 @@ public class Replicator {
   private final ManagedChannel[] tailChannel;
   private final RubbleKvStoreServiceStub[] headStub;
   private final RubbleKvStoreServiceStub[] tailStub;
-  private final StreamObserver[] observerArray;
+  private final Map<Integer, StreamObserver> observerMap;
   private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
   
@@ -45,7 +47,7 @@ public class Replicator {
     this.tailChannel = new ManagedChannel[shardNum];
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
-    this.observerArray = new StreamObserver[shardNum];
+    this.observerMap = new HashMap<Integer, StreamObserver>();
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
@@ -117,8 +119,8 @@ public class Replicator {
         @Override
         public void onNext(OpReply reply) {
           idx = reply.getClientIdx();
-          synchronized (observerArray[idx]) {
-            observerArray[idx].onNext(reply);
+          synchronized (observerMap.get(idx)) {
+            observerMap.get(idx).onNext(reply);
           }
         }
 
@@ -132,8 +134,8 @@ public class Replicator {
           observerAccumulator.accumulate(-1);
           System.out.println("observerAccumulator " + observerAccumulator.longValue());
           if (observerAccumulator.longValue() == 0) {
-            System.out.println("observerArray[" + idx + "].onCompleted() " + observerArray[idx]);
-            observerArray[idx].onCompleted();
+            System.out.println("observerMap[" + idx + "].onCompleted() " + observerMap.get(idx));
+            observerMap.get(idx).onCompleted();
           }
           responseObserver.onCompleted();
         }
@@ -176,13 +178,15 @@ public class Replicator {
         @Override
         public void onNext(Op request) {
           //LOGGER.info("send read request to tail");
-          int shard = request.getClientIdx();
-          if (responseObserver != observerArray[shard]) {
-            System.out.println("observerArray[" + shard + "] changes from " + 
-                observerArray[shard] + " to " + responseObserver);
+          int shard = request.getShardIdx();
+          int client = request.getClientIdx();
+          if (responseObserver != observerMap.get(client)) {
+            System.out.println("observerMap[" + client + "] changes from " + 
+                observerMap.get(client) + " to " + responseObserver);
+            observerMap.put(client, responseObserver);
           }
-          observerArray[shard] = responseObserver;
           if (request.getOps(0).getType() == OpType.GET) {
+          // if (request.getOps(0).getType() == OpType.UNRECOGNIZED) { // send all requests to the head for debugging
             if (tailObserver == null) {
               buildObserver(false);
               tailObserver = tailStub[shard].doOp(tailReplyObserver);
