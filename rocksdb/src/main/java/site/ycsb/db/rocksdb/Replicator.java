@@ -8,9 +8,11 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 
 import site.ycsb.*;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
+import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceBlockingStub;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -20,6 +22,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 import java.util.concurrent.atomic.LongAccumulator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 
 /**
  * Replicator in chain replication.
@@ -33,11 +39,18 @@ public class Replicator {
   private final Server server;
   private final ManagedChannel[] headChannel;
   private final ManagedChannel[] tailChannel;
-  private final RubbleKvStoreServiceStub[] headStub;
-  private final RubbleKvStoreServiceStub[] tailStub;
+  private static RubbleKvStoreServiceStub[] headStub; // added static
+  private static RubbleKvStoreServiceStub[] tailStub;
   private final Map<Integer, StreamObserver> observerMap;
   private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
+
+  // HEARTBEAT
+  private static List<List<ManagedChannel>> channels;
+  private static int[] replicationFactor;
+  private static List<List<RubbleKvStoreServiceBlockingStub>> healthStub;
+  private static int needRestart = 0;
+  // HEARTBEAT
   
   public Replicator() throws IOException {
     this.shardNum = Integer.parseInt(props.getProperty("shard"));
@@ -47,23 +60,52 @@ public class Replicator {
     this.tailChannel = new ManagedChannel[shardNum];
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
+    this.healthStub = new ArrayList<>(shardNum);
     this.observerMap = new HashMap<Integer, StreamObserver>();
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
+    // HEARTBEAT
+    this.replicationFactor = new int[shardNum];
+    Arrays.fill(this.replicationFactor, 3); // TODO: this is hard-coded
+    this.healthStub = new ArrayList<>(shardNum);
+    this.channels = new ArrayList<>(shardNum);
+    // HEARTBEAT
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+(i+1));
       tailNode[i] = props.getProperty("tail"+(i+1));
+      String middleNode = props.getProperty("middle"+(i+1)); // TMP FIX
       this.headChannel[i] = ManagedChannelBuilder.forTarget(headNode[i]).usePlaintext().build();
       this.tailChannel[i] = ManagedChannelBuilder.forTarget(tailNode[i]).usePlaintext().build();
       this.headStub[i] = RubbleKvStoreServiceGrpc.newStub(this.headChannel[i]);
       this.tailStub[i] = RubbleKvStoreServiceGrpc.newStub(this.tailChannel[i]);
+      // HEARTBEAT
+      this.healthStub.add(new ArrayList<RubbleKvStoreServiceBlockingStub>(replicationFactor[i]));
+      this.channels.add(new ArrayList<ManagedChannel>(replicationFactor[i]));
+      for(int j = 0; j < replicationFactor[i]; j++) {
+        // TODO: temporary fix on channel in 2 & 3 -node setup
+        if (j == 0) {
+          this.channels.get(i).add(headChannel[i]);
+          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.headChannel[i]));
+        } else if (j == replicationFactor[i]-1) {
+          this.channels.get(i).add(tailChannel[i]);
+          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
+        } else {
+          ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
+          this.channels.get(i).add(middleChan);
+          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
+        }
+      }
+      // HEARTBEAT
     }
   }
 
   public void start() throws IOException {
     server.start();
     LOGGER.info("Server started, listening on " + port);
+    // start heartbeat
+    Thread thread = new Thread(new Ping());
+    thread.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -201,6 +243,14 @@ public class Replicator {
               observerAccumulator.accumulate(1);
               System.out.println("observerAccumulator " + observerAccumulator.longValue());
             }
+
+            if (needRestart > 0) {
+              buildObserver(true);
+              headObserver = headStub[shard].doOp(headReplyObserver);
+              needRestart--;
+              System.out.println("Restarting head observer");
+            }
+
             headObserver.onNext(request);
           }
         }
@@ -222,6 +272,71 @@ public class Replicator {
           }
         }
       };
+    }
+  }
+
+  private class Ping implements Runnable {
+    private final int deadlineMs = 500;
+    public void run() {
+    // TODO: replication factor as a System property
+    // TODO: a better defined heart-beat frequency and deadline for RPC
+      int wait = 0;
+      while(true) {
+        for(int i = 0; i < shardNum; i++) {
+          for(int j = 0; j < replicationFactor[i]; j++) {
+            try {
+              LOGGER.info("[i]: " + i + ", [j]: " + j + " wait: " + wait + " :,)");
+              pulse(false, false, i, j);
+              Thread.sleep(500);
+            } catch(InterruptedException e) {
+              LOGGER.error("ping thread interrupted");
+            } catch (StatusRuntimeException e) {
+              onError(e, i, j);
+            }
+          }
+          wait++;
+        }
+      }
+    }
+
+    private void onError(StatusRuntimeException e, int shardId, int nodeId) {
+      LOGGER.error("ping failure on shard: " + shardId + ", node: " + nodeId);
+      // check which node failed
+      if (nodeId == 0) {
+        LOGGER.error("head failure, recovering....");
+        // replicationFactor updated
+        if (--replicationFactor[shardId] <= 0) {
+          LOGGER.error("violating assumption of t-1 failure, shutting down...");
+          System.exit(1);
+        }
+        // headStub updated & update healthStub
+        // TODO: synchronization issue and locking
+        Replicator.healthStub.get(shardId).remove(nodeId);
+        Replicator.channels.get(shardId).remove(nodeId);
+        if (replicationFactor[shardId] == 1) {
+          Replicator.headStub[shardId] = Replicator.tailStub[shardId];
+        } else {
+          Replicator.headStub[shardId] = RubbleKvStoreServiceGrpc.newStub(Replicator.channels.get(shardId).get(0));
+          Replicator.needRestart = 10;
+        }
+        // ping the node s.t. it will update the config
+        pulse(true, true, shardId, 0);
+      } else { // MIDDLE/TAIL NODE FAILURE
+        LOGGER.error("middle node or tail node failure: shutdown...");
+        System.exit(1);
+      }
+    }
+
+    private Empty pulse(boolean isAction, boolean isPrimary, 
+                      int shardId, int nodeId) throws StatusRuntimeException{
+      
+      PingRequest request = PingRequest.newBuilder()
+                                        .setIsAction(isAction)
+                                        .setIsPrimary(isPrimary)
+                                        .build();
+      return Replicator.healthStub.get(shardId).get(nodeId)
+                        .withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
+                        .pulse(request);
     }
   }
 }
