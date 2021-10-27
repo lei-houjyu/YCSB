@@ -49,7 +49,9 @@ public class Replicator {
   private static List<List<ManagedChannel>> channels;
   private static int[] replicationFactor;
   private static List<List<RubbleKvStoreServiceBlockingStub>> healthStub;
-  private static int needRestart = 0;
+  private static long needRestart = 0;
+  private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L); 
+  private final LongAccumulator maxThreads = new LongAccumulator(Long::sum, 0L);
   // HEARTBEAT
   
   public Replicator() throws IOException {
@@ -151,6 +153,7 @@ public class Replicator {
 
   private class RubbleKvStoreService extends RubbleKvStoreServiceGrpc.RubbleKvStoreServiceImplBase {
     private final LongAccumulator observerAccumulator = new LongAccumulator(Long::sum, 0L);
+
     RubbleKvStoreService() {}
 
     @Override
@@ -219,7 +222,8 @@ public class Replicator {
 
         @Override
         public void onNext(Op request) {
-          //LOGGER.info("send read request to tail");
+          // LOGGER.info("send read request to tail");
+          
           int shard = request.getShardIdx();
           int client = request.getClientIdx();
           if (responseObserver != observerMap.get(client)) {
@@ -233,6 +237,11 @@ public class Replicator {
               buildObserver(false);
               tailObserver = tailStub[shard].doOp(tailReplyObserver);
               observerAccumulator.accumulate(1);
+              // code snippet is not atomic, but initializing more observers does not harm
+              // having a maxThreads value larger than the number of clients is fine
+              if (observerAccumulator.longValue() > maxThreads.longValue()) {
+                maxThreads.accumulate(1);
+              }
               System.out.println("observerAccumulator " + observerAccumulator.longValue());
             }
             tailObserver.onNext(request);
@@ -241,6 +250,9 @@ public class Replicator {
               buildObserver(true);
               headObserver = headStub[shard].doOp(headReplyObserver);
               observerAccumulator.accumulate(1);
+              if (observerAccumulator.longValue() > maxThreads.longValue()) {
+                maxThreads.accumulate(1);
+              }
               System.out.println("observerAccumulator " + observerAccumulator.longValue());
             }
 
@@ -252,7 +264,9 @@ public class Replicator {
             }
 
             headObserver.onNext(request);
+            opssent.accumulate(request.getOpsCount());
           }
+         
         }
 
         @Override
@@ -303,7 +317,8 @@ public class Replicator {
       LOGGER.error("ping failure on shard: " + shardId + ", node: " + nodeId);
       // check which node failed
       if (nodeId == 0) {
-        LOGGER.error("head failure, recovering....");
+        String currentTime = String.format("%1$TH:%1$TM:%1$TS", System.currentTimeMillis());
+        LOGGER.error("head failure at " + currentTime + " recovering....");
         // replicationFactor updated
         if (--replicationFactor[shardId] <= 0) {
           LOGGER.error("violating assumption of t-1 failure, shutting down...");
@@ -317,16 +332,20 @@ public class Replicator {
           Replicator.headStub[shardId] = Replicator.tailStub[shardId];
         } else {
           Replicator.headStub[shardId] = RubbleKvStoreServiceGrpc.newStub(Replicator.channels.get(shardId).get(0));
-          Replicator.needRestart = 10;
+          // Replicator.needRestart = observerAccumulator.longValue() + 1;
+          Replicator.needRestart = maxThreads.longValue();
+          System.out.println("[Restart times]: " + needRestart);
         }
         // ping the node s.t. it will update the config
         pulse(true, true, shardId, 0);
+        System.out.println("[Ops sent]: " + opssent.get());
       } else { // MIDDLE/TAIL NODE FAILURE
         LOGGER.error("middle node or tail node failure: shutdown...");
         System.exit(1);
       }
     }
-
+    
+    // recovery heartbeat
     private Empty pulse(boolean isAction, boolean isPrimary, 
                       int shardId, int nodeId) throws StatusRuntimeException{
       
