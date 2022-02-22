@@ -69,7 +69,8 @@ public class Replicator {
     this.server = serverBuilder.build();
     // HEARTBEAT
     this.replicationFactor = new int[shardNum];
-    Arrays.fill(this.replicationFactor, 3); // TODO: this is hard-coded
+    int replicaPerChain = Integer.parseInt(props.getProperty("replica", "3"));
+    Arrays.fill(this.replicationFactor, replicaPerChain); // TODO: this is hard-coded
     this.healthStub = new ArrayList<>(shardNum);
     this.channels = new ArrayList<>(shardNum);
     // HEARTBEAT
@@ -92,7 +93,7 @@ public class Replicator {
         } else if (j == replicationFactor[i]-1) {
           this.channels.get(i).add(tailChannel[i]);
           this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
-        } else {
+        } else { // middle node
           ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
           this.channels.get(i).add(middleChan);
           this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
@@ -290,9 +291,8 @@ public class Replicator {
   }
 
   private class Ping implements Runnable {
-    private final int deadlineMs = 500;
+    private final int deadlineMs = 500; // [TODO] (cc4351) parameterize this
     public void run() {
-    // TODO: replication factor as a System property
     // TODO: a better defined heart-beat frequency and deadline for RPC
       int wait = 0;
       while(true) {
@@ -318,7 +318,8 @@ public class Replicator {
       // check which node failed
       if (nodeId == 0) {
         String currentTime = String.format("%1$TH:%1$TM:%1$TS", System.currentTimeMillis());
-        LOGGER.error("head failure at " + currentTime + " recovering....");
+        LOGGER.error("head failure at " + currentTime + " recovering with remaining "
+                      + (replicationFactor[shardId] - 1) + " nodes....");
         // replicationFactor updated
         if (--replicationFactor[shardId] <= 0) {
           LOGGER.error("violating assumption of t-1 failure, shutting down...");
