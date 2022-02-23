@@ -266,6 +266,7 @@ public class Replicator {
 
             headObserver.onNext(request);
             opssent.accumulate(request.getOpsCount());
+            System.out.println("Ops sent: " + opssent.get());
           }
          
         }
@@ -329,14 +330,12 @@ public class Replicator {
         // TODO: synchronization issue and locking
         Replicator.healthStub.get(shardId).remove(nodeId);
         Replicator.channels.get(shardId).remove(nodeId);
-        if (replicationFactor[shardId] == 1) {
-          Replicator.headStub[shardId] = Replicator.tailStub[shardId];
-        } else {
-          Replicator.headStub[shardId] = RubbleKvStoreServiceGrpc.newStub(Replicator.channels.get(shardId).get(0));
-          // Replicator.needRestart = observerAccumulator.longValue() + 1;
-          Replicator.needRestart = maxThreads.longValue();
-          System.out.println("[Restart times]: " + needRestart);
-        }
+
+        Replicator.headStub[shardId] = RubbleKvStoreServiceGrpc.newStub(Replicator.channels.get(shardId).get(0));
+        // Replicator.needRestart = observerAccumulator.longValue() + 1;
+        Replicator.needRestart = maxThreads.longValue();
+        System.out.println("[Restart times]: " + needRestart);
+
         // ping the node s.t. it will update the config
         pulse(true, true, shardId, 0);
         System.out.println("[Ops sent]: " + opssent.get());
