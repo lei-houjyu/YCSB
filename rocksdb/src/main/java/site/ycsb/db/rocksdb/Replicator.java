@@ -138,6 +138,7 @@ public class Replicator {
             observerMap.get(idx).onCompleted();
           }
           responseObserver.onCompleted();
+          System.out.println("responseObserver.onCompleted()");
         }
       };
     }

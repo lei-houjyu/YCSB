@@ -27,9 +27,11 @@ for i in $(seq 1 $shard_num)
 do
     for j in $(seq 1 $#)
     do
-        ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null & echo \$! > rocksdb-${i}-pid.txt"
+        # ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null & echo \$! > rocksdb-${i}-pid.txt"
+        ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; sudo rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null & echo \$! > rocksdb-${i}-pid.txt"
     done
 done
+
 for i in $(seq 1 $shard_num)
 do
     cur_port=`expr 8980 + $i`

@@ -73,6 +73,8 @@ public class DBWrapper extends DB {
   private StreamObserver<Op> requestObserver;
   private StreamObserver<OpReply> replyObserver;
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
+  private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L);
+  private static final LongAccumulator BATCH_ID = new LongAccumulator(Long::sum, 0L);
   private int opcount;
   private ManagedChannel channel;
   private RubbleKvStoreServiceStub asyncStub;
@@ -169,7 +171,8 @@ public class DBWrapper extends DB {
       public void onNext(OpReply reply) {
         //LOGGER.info("receive reply from replicator");
         int batchSize = reply.getRepliesCount();
-        long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
+        // long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
+        long latency = 0;
         for (int i = 0; i < batchSize; i++) {
           switch (reply.getReplies(i).getType()) {
             case GET:
@@ -192,6 +195,7 @@ public class DBWrapper extends DB {
         opsdone.accumulate(batchSize);
         if (opsdone.intValue() == opcount) {
           requestObserver.onCompleted();
+          System.out.println("requestObserver.onCompleted");
         }
       }
 
@@ -244,6 +248,7 @@ public class DBWrapper extends DB {
   // [Rubble]
   public void sendBatch(boolean isWrite) throws Exception {
     int batchSize = isWrite ? writeBatchSize : readBatchSize;
+    assert(batchSize <= DB.BATCHSIZE);
     if (batchSize == 0) {
       return;
     }
@@ -259,17 +264,26 @@ public class DBWrapper extends DB {
       if (isWrite) {
         opBuilder.setValue(writeVals[i]);
       }
+      opBuilder.setTargetMemId(0);
       builder.addOps(opBuilder.build());
     }
 
     // LIMITER.acquire();
     // LOGGER.info("send batch " + batchSize);
     builder.addTime(System.nanoTime());
+    BATCH_ID.accumulate(1);
+    builder.setId(BATCH_ID.intValue());
     requestObserver.onNext(builder.build());
     if (isWrite) {
       writeBatchSize = 0;
     } else {
       readBatchSize = 0;
+    }
+    opssent.accumulate(batchSize);
+    if (opssent.intValue() == opcount) {
+      builder.setId(-1);
+      requestObserver.onNext(builder.build());
+      System.out.println("sendTerminationMsg");
     }
   }
   // [Rubble]

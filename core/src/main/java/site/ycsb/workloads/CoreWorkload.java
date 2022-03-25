@@ -613,6 +613,7 @@ public class CoreWorkload extends Workload {
   public boolean doInsert(DB db, Object threadstate) {
     int keynum = keysequence.nextValue().intValue();
     String dbkey = CoreWorkload.buildKeyName(keynum, zeropadding, orderedinserts);
+    System.out.println("db_key: " + dbkey + " orderedinserts: " + orderedinserts);
     HashMap<String, ByteIterator> values = buildValues(dbkey);
 
     Status status;
