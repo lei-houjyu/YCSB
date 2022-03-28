@@ -2,92 +2,55 @@
 
 set -x
 
-if [ $# -lt 5 ]; then
-    echo "Usage: bash eval.sh replicator_port mode(run or load) workload target_rate ip_0 ... ip_N"
+if [ $# != 5 ]; then
+    echo "Usage: bash eval.sh phase(run or load) workload target_rate result_suffix mode"
     exit
 fi
 
-port=$1
-mode=$2
-workload=$3
-rate=$4
-shift 4
-shard_num=$#
+phase=$1
+workload=$2
+rate=$3
+suffix=$4
+mode=$5
 
 # kill zumbie replicator, heads, and tails
-bash kill.sh $*
+bash prepare.sh 10.10.1.3 10.10.1.4
 sleep 5
 
 # start nodes from tail to head
-ip=($*)
-replicator_args=''
-sleep_ms=1000
-# cp the dataset in parallel
-for i in $(seq 1 $shard_num)
-do
-    for j in $(seq 1 $#)
-    do
-        # ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null & echo \$! > rocksdb-${i}-pid.txt"
-        ssh ${USER}@${ip[$j-1]} "cd /mnt/sdb/; sudo rm -rf rocksdb-${i} > /dev/null 2>&1; nohup cp -r rocksdb-${i}-backup rocksdb-${i} > /dev/null & echo \$! > rocksdb-${i}-pid.txt"
-    done
-done
 
-for i in $(seq 1 $shard_num)
-do
-    cur_port=`expr 8980 + $i`
-    pre_port=`expr 8979 + $i`
-    # start nodes in background
-    for j in $(seq 1 $#)
-    do
-        cur_ip=${ip[$j-1]}
-        pre_ip=${ip[$j-2]}
-        case $i in
-            1)
-            replicator_args='-p tail'${j}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} tail null $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
-            ;;
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash clean.sh > /dev/null 2>&1;"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 10.10.1.4:50052 > primary.out 2>&1"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 10.10.1.1:50050 > tail.out 2>&1"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo bash iostat.sh"
 
-            $shard_num)
-            chain=`expr $j - $shard_num + 1`
-            if [ $chain -lt 1 ]
-            then
-                chain=`expr $chain + $shard_num`
-            fi
-            replicator_args='-p head'${chain}'='${cur_ip}:${cur_port}' '$replicator_args
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} head ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
-            ;;
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash clean.sh > /dev/null 2>&1;"
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 10.10.1.3:50052 > primary.out 2>&1"
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 10.10.1.1:50050 > tail.out 2>&1"
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; nohup sudo bash iostat.sh"
 
-            *)
-            ssh ${USER}@${cur_ip} "cd YCSB-${i}; nohup bash node.sh /mnt/sdb/rocksdb-${i} ${cur_port} mid ${pre_ip}:${pre_port} $sleep_ms > nohup.out 2>&1 & echo \$! > pid.txt"
-            ;;
-        esac
-    done
-    # wait for current nodes to be ready, then we start the next round of nodes
-    for j in $(seq 1 $#)
-    do
-        cur_ip=${ip[$j-1]}
-        ssh ${USER}@${cur_ip} "cd YCSB-${i}; until grep 'Server started' nohup.out > /dev/null; do sleep 1; done"
-    done
-done
-
-echo $replicator_args
 # start the replicator
-./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=$port -p shard=$shard_num $replicator_args > replicator.out 2>&1 &
-
-# start iostat
-for j in $(seq 1 $#)
-do
-    cur_ip=${ip[$j-1]}
-    # ssh ${USER}@${cur_ip} "nohup iostat -yt 1 > iostat.out &"
-    ssh ${USER}@${cur_ip} "nohup dstat --output dstat.csv > dstat.out &"
-done
-# iostat -yt 1 > iostat.out &
-dstat --output dstat.csv > dstat.out &
+replicator_args='-p shard=2 -p head1=10.10.1.3:50051 -p tail1=10.10.1.4:50052 -p head2=10.10.1.4:50051 -p tail2=10.10.1.3:50052'
+./bin/ycsb.sh replicator rocksdb -s -P workloads/workloada -p port=50050 $replicator_args > replicator.out 2>&1 &
 
 # start ycsb
-bash $mode.sh $workload localhost:$port $shard_num $sleep_ms $rate > ycsb.out 2>&1
+sleep_ms=1000
+bash $phase.sh $workload localhost:50050 2 $sleep_ms $rate > ycsb.out 2>&1
 grep Throughput ycsb.out
+cp ycsb.out ycsb-${suffix}.out
+python3 plot-thru.py ycsb-${suffix}.out 10
 
 # kill replicator, heads, and tails
-bash kill.sh $*
-sleep 5
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash wait-pending-jobs.sh primary"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash wait-pending-jobs.sh tail"
+ssh ${USER}@10.10.1.3 "sudo killall iostat"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; cp primary.out primary-${suffix}.out; cp tail.out tail-${suffix}.out; cp iostat.out iostat-${suffix}.out"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
+
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash wait-pending-jobs.sh primary"
+ssh ${USER}@10.10.1.4 "cd /mnt/sdb/my_rocksdb/rubble; sudo bash wait-pending-jobs.sh tail"
+ssh ${USER}@10.10.1.4 "sudo killall iostat"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; cp primary.out primary-${suffix}.out; cp tail.out tail-${suffix}.out; cp iostat.out iostat-${suffix}.out"
+ssh ${USER}@10.10.1.3 "cd /mnt/sdb/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
