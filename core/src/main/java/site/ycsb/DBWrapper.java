@@ -88,6 +88,7 @@ public class DBWrapper extends DB {
   private OpType[] readTypes;
   private String[] readKeys;
   private int readBatchSize;
+  private boolean needReInit;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -136,37 +137,8 @@ public class DBWrapper extends DB {
     return db.getProperties();
   }
 
-  /**
-   * Initialize any state for this DB.
-   * Called once per DB instance; there is one DB instance per client thread.
-   */
-  public void init() throws DBException {
-    try (final TraceScope span = tracer.newScope(scopeStringInit)) {
-      db.init();
-
-      this.reportLatencyForEachError = Boolean.parseBoolean(getProperties().
-          getProperty(REPORT_LATENCY_FOR_EACH_ERROR_PROPERTY,
-              REPORT_LATENCY_FOR_EACH_ERROR_PROPERTY_DEFAULT));
-
-      if (!reportLatencyForEachError) {
-        String latencyTrackedErrorsProperty = getProperties().getProperty(LATENCY_TRACKED_ERRORS_PROPERTY, null);
-        if (latencyTrackedErrorsProperty != null) {
-          this.latencyTrackedErrors = new HashSet<String>(Arrays.asList(
-              latencyTrackedErrorsProperty.split(",")));
-        }
-      }
-
-      if (LOG_REPORT_CONFIG.compareAndSet(false, true)) {
-        System.err.println("DBWrapper: report latency for each error is " +
-            this.reportLatencyForEachError + " and specific error codes to track" +
-            " for latency are: " + this.latencyTrackedErrors.toString());
-      }
-    }
-
-    // [Rubble]
-    channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
-    asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
-    replyObserver = new StreamObserver<OpReply>() {
+  private StreamObserver<OpReply> buildReplyObserver() {
+    return new StreamObserver<OpReply>() {
       @Override
       public void onNext(OpReply reply) {
         //LOGGER.info("receive reply from replicator");
@@ -206,11 +178,47 @@ public class DBWrapper extends DB {
 
       @Override
       public void onCompleted() {
+        if (opsdone.intValue() != opcount) {
+          needReInit = true;
+        }
         LOGGER.info("onCompleted from replicator");
         // LIMITER.release();
       }
     };
-    requestObserver = asyncStub.doOp(replyObserver);
+  }
+
+  /**
+   * Initialize any state for this DB.
+   * Called once per DB instance; there is one DB instance per client thread.
+   */
+  public void init() throws DBException {
+    try (final TraceScope span = tracer.newScope(scopeStringInit)) {
+      db.init();
+
+      this.reportLatencyForEachError = Boolean.parseBoolean(getProperties().
+          getProperty(REPORT_LATENCY_FOR_EACH_ERROR_PROPERTY,
+              REPORT_LATENCY_FOR_EACH_ERROR_PROPERTY_DEFAULT));
+
+      if (!reportLatencyForEachError) {
+        String latencyTrackedErrorsProperty = getProperties().getProperty(LATENCY_TRACKED_ERRORS_PROPERTY, null);
+        if (latencyTrackedErrorsProperty != null) {
+          this.latencyTrackedErrors = new HashSet<String>(Arrays.asList(
+              latencyTrackedErrorsProperty.split(",")));
+        }
+      }
+
+      if (LOG_REPORT_CONFIG.compareAndSet(false, true)) {
+        System.err.println("DBWrapper: report latency for each error is " +
+            this.reportLatencyForEachError + " and specific error codes to track" +
+            " for latency are: " + this.latencyTrackedErrors.toString());
+      }
+    }
+
+    // [Rubble]
+    channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
+    asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
+    needReInit = false;
+    requestObserver = asyncStub.doOp(buildReplyObserver());
     writeTypes = new OpType[DB.BATCHSIZE];
     writeKeys  = new String[DB.BATCHSIZE];
     writeVals  = new String[DB.BATCHSIZE];
@@ -273,6 +281,10 @@ public class DBWrapper extends DB {
     builder.addTime(System.nanoTime());
     BATCH_ID.accumulate(1);
     builder.setId(BATCH_ID.intValue());
+    if (needReInit) {
+      requestObserver = asyncStub.doOp(buildReplyObserver());
+      needReInit = false;
+    }
     requestObserver.onNext(builder.build());
     if (isWrite) {
       writeBatchSize = 0;
