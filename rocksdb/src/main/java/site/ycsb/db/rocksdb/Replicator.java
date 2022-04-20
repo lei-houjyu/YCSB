@@ -267,7 +267,7 @@ public class Replicator {
 
             headObserver.onNext(request);
             opssent.accumulate(request.getOpsCount());
-            System.out.println("Ops sent: " + opssent.get());
+            // System.out.println("Ops sent: " + opssent.get());
           }
          
         }
@@ -293,7 +293,7 @@ public class Replicator {
   }
 
   private class Ping implements Runnable {
-    private final int deadlineMs = 500; // [TODO] (cc4351) parameterize this
+    private final int deadlineMs = 10000; // [TODO] (cc4351) parameterize this
     public void run() {
     // TODO: a better defined heart-beat frequency and deadline for RPC
       int wait = 0;
@@ -316,7 +316,7 @@ public class Replicator {
     }
 
     private void onError(StatusRuntimeException e, int shardId, int nodeId) {
-      LOGGER.error("ping failure on shard: " + shardId + ", node: " + nodeId);
+      LOGGER.error("ping failure on shard: " + shardId + ", node: " + nodeId + " " + e.toString());
       // check which node failed
       if (nodeId == 0) {
         String currentTime = String.format("%1$TH:%1$TM:%1$TS", System.currentTimeMillis());
