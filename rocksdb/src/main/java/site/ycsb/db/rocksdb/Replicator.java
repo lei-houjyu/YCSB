@@ -293,7 +293,7 @@ public class Replicator {
   }
 
   private class Ping implements Runnable {
-    private final int deadlineMs = 10000; // [TODO] (cc4351) parameterize this
+    private final int deadlineMs = 1000000; // [TODO] (cc4351) parameterize this
     public void run() {
     // TODO: a better defined heart-beat frequency and deadline for RPC
       int wait = 0;
