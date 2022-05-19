@@ -246,7 +246,9 @@ public class Replicator {
               }
               System.out.println("observerAccumulator " + observerAccumulator.longValue());
             }
-            tailObserver.onNext(request);
+            synchronized (tailObserver) {
+              tailObserver.onNext(request);
+            }
           } else {
             if (headObserver == null) {
               buildObserver(true);
@@ -265,7 +267,9 @@ public class Replicator {
               System.out.println("Restarting head observer");
             }
 
-            headObserver.onNext(request);
+            synchronized (headObserver) {
+              headObserver.onNext(request);
+            }
             opssent.accumulate(request.getOpsCount());
             // System.out.println("Ops sent: " + opssent.get());
           }
