@@ -273,7 +273,16 @@ public class Replicator {
             opssent.accumulate(request.getOpsCount());
             // System.out.println("Ops sent: " + opssent.get());
           }
-         
+
+          // also send termination message to the head to clean all buffered requests in
+          // secondaries because read threads don't buffer anything
+          if (request.getId() == -1) {
+            if (request.getOps(0).getType() == OpType.GET && headObserver != null) {
+              synchronized (headObserver) {
+                headObserver.onNext(request);
+              }
+            } 
+          }
         }
 
         @Override
