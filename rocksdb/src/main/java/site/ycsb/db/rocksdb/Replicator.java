@@ -77,7 +77,7 @@ public class Replicator {
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+(i+1));
       tailNode[i] = props.getProperty("tail"+(i+1));
-      String middleNode = props.getProperty("middle"+(i+1)); // TMP FIX
+      
       this.headChannel[i] = ManagedChannelBuilder.forTarget(headNode[i]).usePlaintext().build();
       this.tailChannel[i] = ManagedChannelBuilder.forTarget(tailNode[i]).usePlaintext().build();
       this.headStub[i] = RubbleKvStoreServiceGrpc.newStub(this.headChannel[i]);
@@ -94,6 +94,7 @@ public class Replicator {
           this.channels.get(i).add(tailChannel[i]);
           this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
         } else { // middle node
+          String middleNode = props.getProperty("middle"+(i+1)+"_"+j); // TMP FIX
           ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
           this.channels.get(i).add(middleChan);
           this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
