@@ -44,7 +44,27 @@ replicator_args='-p shard=4 -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p
 
 # start ycsb
 sleep_ms=1000
-bash $phase.sh $workload localhost:50050 4 $sleep_ms $rate 16 > ycsb.out 2>&1
+echo "" > ycsb.out
+if [ $phase != load ]; then
+    ssh ${USER}@10.10.1.2 "sudo cgset -r memory.limit_in_bytes=128G rubble-mem; sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
+    ssh ${USER}@10.10.1.3 "sudo cgset -r memory.limit_in_bytes=128G rubble-mem; sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
+
+    bash load.sh $workload localhost:50050 4 $sleep_ms $rate 16 > ycsb.out 2>&1
+
+    ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/primary/db/LOG"
+    ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/primary/db/LOG"
+    ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/tail/db/LOG"
+    ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/tail/db/LOG"
+    ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/primary/db/LOG"
+    ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/primary/db/LOG"
+    ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/tail/db/LOG"
+    ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/tail/db/LOG"
+
+    ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
+    ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
+fi
+
+bash $phase.sh $workload localhost:50050 4 $sleep_ms $rate 16 >> ycsb.out 2>&1
 grep Throughput ycsb.out
 cp ycsb.out ycsb-${suffix}.out
 python3 plot-thru.py ycsb-${suffix}.out 10
@@ -52,12 +72,12 @@ python3 plot-thru.py ycsb-${suffix}.out 10
 # kill replicator, heads, and tails
 ssh ${USER}@10.10.1.2 "sudo killall primary_node tail_node dstat iostat"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; cp primary-1.out primary-1-${suffix}.out; cp primary-2.out primary-2-${suffix}.out; cp tail-1.out tail-1-${suffix}.out; cp tail-2.out tail-2-${suffix}.out; cp dstat.csv dstat-${suffix}.csv; cp iostat.out iostat-${suffix}.out"
-ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.out 10"
+ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.csv 10"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
 
 ssh ${USER}@10.10.1.3 "sudo killall primary_node tail_node dstat iostat"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; cp primary-1.out primary-1-${suffix}.out; cp primary-2.out primary-2-${suffix}.out; cp tail-1.out tail-1-${suffix}.out; cp tail-2.out tail-2-${suffix}.out; cp dstat.csv dstat-${suffix}.csv; cp iostat.out iostat-${suffix}.out"
-ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.out 10"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.csv 10"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
 
 sudo killall java

@@ -146,22 +146,24 @@ public class DBWrapper extends DB {
         // long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
         long latency = 0;
         for (int i = 0; i < batchSize; i++) {
+          String suffix = "";
+          if (!reply.getReplies(i).getOk()) {
+            // LOGGER.error(reply.getReplies(i).getStatus());
+            suffix = "-FAILED";
+          }
           switch (reply.getReplies(i).getType()) {
             case GET:
-              measurements.measure("READ", (int)latency);
+              measurements.measure("READ" + suffix, (int)latency);
               break;
             case UPDATE:
-              measurements.measure("UPDATE", (int)latency);
+              measurements.measure("UPDATE" + suffix, (int)latency);
               break;
             case PUT:
-              measurements.measure("INSERT", (int)latency);
+              measurements.measure("INSERT" + suffix, (int)latency);
               break;
             default:
               LOGGER.error("Unsupported type!");
               break;
-          }
-          if (!reply.getReplies(i).getOk()) {
-            LOGGER.error(reply.getReplies(i).getStatus());
           }
         }
         opsdone.accumulate(batchSize);
