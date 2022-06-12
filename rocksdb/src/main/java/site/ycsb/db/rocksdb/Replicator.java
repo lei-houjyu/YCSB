@@ -14,8 +14,6 @@ import site.ycsb.*;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceBlockingStub;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +32,7 @@ import java.util.Arrays;
  */
 public class Replicator {
   private final int shardNum;
+  private final int clientNum;
   private static Properties props;
   private final int port;
   private final Server server;
@@ -41,7 +40,7 @@ public class Replicator {
   private final ManagedChannel[] tailChannel;
   private static RubbleKvStoreServiceStub[] headStub; // added static
   private static RubbleKvStoreServiceStub[] tailStub;
-  private final Map<Integer, StreamObserver> observerMap;
+  private final StreamObserver[][] observerMap;
   private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
 
@@ -56,6 +55,7 @@ public class Replicator {
   
   public Replicator() throws IOException {
     this.shardNum = Integer.parseInt(props.getProperty("shard"));
+    this.clientNum = Integer.parseInt(props.getProperty("client"));
     String[] headNode = new String[shardNum];
     String[] tailNode = new String [shardNum];
     this.headChannel = new ManagedChannel[shardNum];
@@ -63,7 +63,7 @@ public class Replicator {
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
     this.healthStub = new ArrayList<>(shardNum);
-    this.observerMap = new HashMap<Integer, StreamObserver>();
+    this.observerMap = new StreamObserver[clientNum][shardNum];
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
@@ -161,14 +161,20 @@ public class Replicator {
     @Override
     public StreamObserver<OpReply> sendReply(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<OpReply>() {
-        private int idx = -1;
+        private int shardIdx = -1;
+        private int clientIdx = -1;
 
         @Override
         public void onNext(OpReply reply) {
-          idx = reply.getClientIdx();
-          synchronized (observerMap.get(idx)) {
-            observerMap.get(idx).onNext(reply);
+          if (shardIdx == -1) {
+            shardIdx = reply.getShardIdx();
           }
+          if (clientIdx == -1) {
+            clientIdx = reply.getClientIdx();
+          }
+          assert(shardIdx == reply.getShardIdx());
+          assert(clientIdx == reply.getClientIdx());
+          observerMap[clientIdx][shardIdx].onNext(reply);
         }
 
         @Override
@@ -178,12 +184,7 @@ public class Replicator {
 
         @Override
         public void onCompleted() {
-          observerAccumulator.accumulate(-1);
-          System.out.println("observerAccumulator " + observerAccumulator.longValue());
-          if (observerAccumulator.longValue() == 0) {
-            System.out.println("observerMap[" + idx + "].onCompleted() " + observerMap.get(idx));
-            observerMap.get(idx).onCompleted();
-          }
+          observerMap[clientIdx][shardIdx].onCompleted();
           responseObserver.onCompleted();
           System.out.println("responseObserver.onCompleted()");
         }
@@ -193,6 +194,8 @@ public class Replicator {
     @Override
     public StreamObserver<Op> doOp(final StreamObserver<OpReply> responseObserver) {
       return new StreamObserver<Op>() {
+        private int shardIdx = -1;
+        private int clientIdx = -1;
         private StreamObserver<Op> headObserver = null;
         private StreamObserver<Op> tailObserver = null;
         private StreamObserver<OpReply> headReplyObserver = null;
@@ -225,52 +228,53 @@ public class Replicator {
 
         @Override
         public void onNext(Op request) {
-          // LOGGER.info("send read request to tail");
-          
-          int shard = request.getShardIdx();
-          int client = request.getClientIdx();
-          if (responseObserver != observerMap.get(client)) {
-            System.out.println("observerMap[" + client + "] changes from " + 
-                observerMap.get(client) + " to " + responseObserver);
-            observerMap.put(client, responseObserver);
+          if (shardIdx == -1) {
+            shardIdx = request.getShardIdx();
+          }
+          if (clientIdx == -1) {
+            clientIdx = request.getClientIdx();
+          }
+          assert(shardIdx == request.getShardIdx());
+          assert(clientIdx == request.getClientIdx());
+
+          if (responseObserver != observerMap[clientIdx][shardIdx]) {
+            System.out.println("observerMap[" + clientIdx + "] [" + shardIdx + "] changes from " + 
+                observerMap[clientIdx][shardIdx] + " to " + responseObserver);
+            observerMap[clientIdx][shardIdx] = responseObserver;
           }
           if (request.getOps(0).getType() == OpType.GET) {
           // if (request.getOps(0).getType() == OpType.UNRECOGNIZED) { // send all requests to the head for debugging
             if (tailObserver == null) {
               buildObserver(false);
-              tailObserver = tailStub[shard].doOp(tailReplyObserver);
+              tailObserver = tailStub[shardIdx].doOp(tailReplyObserver);
               observerAccumulator.accumulate(1);
               // code snippet is not atomic, but initializing more observers does not harm
               // having a maxThreads value larger than the number of clients is fine
               if (observerAccumulator.longValue() > maxThreads.longValue()) {
                 maxThreads.accumulate(1);
               }
-              System.out.println("observerAccumulator " + observerAccumulator.longValue());
+              System.out.println("observerAccumulator " + observerAccumulator.longValue() + " shard " + shardIdx);
             }
-            synchronized (tailObserver) {
-              tailObserver.onNext(request);
-            }
+            tailObserver.onNext(request);
           } else {
             if (headObserver == null) {
               buildObserver(true);
-              headObserver = headStub[shard].doOp(headReplyObserver);
+              headObserver = headStub[shardIdx].doOp(headReplyObserver);
               observerAccumulator.accumulate(1);
               if (observerAccumulator.longValue() > maxThreads.longValue()) {
                 maxThreads.accumulate(1);
               }
-              System.out.println("observerAccumulator " + observerAccumulator.longValue());
+              System.out.println("observerAccumulator " + observerAccumulator.longValue() + " shard " + shardIdx);
             }
 
             if (needRestart > 0) {
               buildObserver(true);
-              headObserver = headStub[shard].doOp(headReplyObserver);
+              headObserver = headStub[shardIdx].doOp(headReplyObserver);
               needRestart--;
               System.out.println("Restarting head observer");
             }
 
-            synchronized (headObserver) {
-              headObserver.onNext(request);
-            }
+            headObserver.onNext(request);
             opssent.accumulate(request.getOpsCount());
             // System.out.println("Ops sent: " + opssent.get());
           }

@@ -89,10 +89,6 @@ public class ClientThread implements Runnable {
 
   public void setThreadCount(final int threadCount) {
     threadcount = threadCount;
-    // [Rubble]
-    int threadPerShard = threadcount / shardNum;
-    ((DBWrapper)db).setShardIdx(threadid / threadPerShard);
-    // [Rubble]
   }
 
   public int getOpsDone() {
@@ -145,8 +141,10 @@ public class ClientThread implements Runnable {
         }
 
         // [Rubble]
-        ((DBWrapper)db).sendBatch(true);
-        ((DBWrapper)db).sendBatch(false);
+        for (int i = 0; i < shardNum; i++) {
+          ((DBWrapper)db).sendBatch(true, i);
+          ((DBWrapper)db).sendBatch(false, i);
+        }
         // [Rubble]
       } else {
         long startTimeNanos = System.nanoTime();
@@ -162,7 +160,9 @@ public class ClientThread implements Runnable {
           throttleNanos(startTimeNanos);
         }
         // [Rubble]
-        ((DBWrapper)db).sendBatch(true);
+        for (int i = 0; i < shardNum; i++) {
+          ((DBWrapper)db).sendBatch(true, i);
+        }
         // [Rubble]
       }
     } catch (Exception e) {

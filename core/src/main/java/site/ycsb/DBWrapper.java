@@ -68,10 +68,9 @@ public class DBWrapper extends DB {
   private final String scopeStringUpdate;
 
   // [Rubble]
-  private int shardIdx;
+  private int shardNum;
   private int clientIdx;
-  private StreamObserver<Op> requestObserver;
-  private StreamObserver<OpReply> replyObserver;
+  private StreamObserver<Op>[] requestObserver;
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L);
   private static final LongAccumulator BATCH_ID = new LongAccumulator(Long::sum, 0L);
@@ -80,14 +79,14 @@ public class DBWrapper extends DB {
   private RubbleKvStoreServiceStub asyncStub;
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   // write batch
-  private OpType[] writeTypes;
-  private String[] writeKeys;
-  private String[] writeVals;
-  private int writeBatchSize;
+  private OpType[][] writeTypes;
+  private String[][] writeKeys;
+  private String[][] writeVals;
+  private int[] writeBatchSize;
   // read batch
-  private OpType[] readTypes;
-  private String[] readKeys;
-  private int readBatchSize;
+  private OpType[][] readTypes;
+  private String[][] readKeys;
+  private int[] readBatchSize;
   private boolean needReInit;
   // [Rubble]
 
@@ -108,10 +107,6 @@ public class DBWrapper extends DB {
   // [Rubble]
   public int getOpsDone() {
     return opsdone.intValue();
-  }
-
-  public void setShardIdx(int shardidx) {
-    this.shardIdx = shardidx;
   }
 
   public void setClientIdx(int clientidx) {
@@ -137,8 +132,10 @@ public class DBWrapper extends DB {
     return db.getProperties();
   }
 
-  private StreamObserver<OpReply> buildReplyObserver() {
+  private StreamObserver<OpReply> buildReplyObserver(int shardIdx) {
     return new StreamObserver<OpReply>() {
+      private int shard = shardIdx;
+      
       @Override
       public void onNext(OpReply reply) {
         //LOGGER.info("receive reply from replicator");
@@ -168,8 +165,8 @@ public class DBWrapper extends DB {
         }
         opsdone.accumulate(batchSize);
         if (opsdone.intValue() == opcount) {
-          requestObserver.onCompleted();
-          System.out.println("requestObserver.onCompleted");
+          requestObserver[shard].onCompleted();
+          System.out.println("requestObserver.onCompleted " + shard);
         }
       }
 
@@ -220,14 +217,18 @@ public class DBWrapper extends DB {
     channel = ManagedChannelBuilder.forTarget(getProperties().getProperty("replicator")).usePlaintext().build();
     asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
     needReInit = false;
-    requestObserver = asyncStub.doOp(buildReplyObserver());
-    writeTypes = new OpType[DB.BATCHSIZE];
-    writeKeys  = new String[DB.BATCHSIZE];
-    writeVals  = new String[DB.BATCHSIZE];
-    writeBatchSize = 0;
-    readTypes = new OpType[DB.BATCHSIZE];
-    readKeys  = new String[DB.BATCHSIZE];
-    readBatchSize = 0;
+    shardNum = Integer.parseInt(getProperties().getProperty("shard"));
+    requestObserver = new StreamObserver[shardNum];
+    for (int i = 0; i < shardNum; i++) {
+      requestObserver[i] = asyncStub.doOp(buildReplyObserver(i));
+    }
+    writeTypes = new OpType[shardNum][DB.BATCHSIZE];
+    writeKeys  = new String[shardNum][DB.BATCHSIZE];
+    writeVals  = new String[shardNum][DB.BATCHSIZE];
+    writeBatchSize = new int[shardNum];
+    readTypes = new OpType[shardNum][DB.BATCHSIZE];
+    readKeys  = new String[shardNum][DB.BATCHSIZE];
+    readBatchSize = new int[shardNum];
     // [Rubble]
   }
 
@@ -256,8 +257,8 @@ public class DBWrapper extends DB {
   }
 
   // [Rubble]
-  public void sendBatch(boolean isWrite) throws Exception {
-    int batchSize = isWrite ? writeBatchSize : readBatchSize;
+  public void sendBatch(boolean isWrite, int shard) throws Exception {
+    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
     assert(batchSize <= DB.BATCHSIZE);
     if (batchSize == 0) {
       return;
@@ -266,38 +267,39 @@ public class DBWrapper extends DB {
     Op.Builder builder = Op.newBuilder();
     SingleOp.Builder opBuilder = SingleOp.newBuilder();
     builder.setHasEdits(false);
-    builder.setShardIdx(shardIdx);
+    builder.setShardIdx(shard);
     builder.setClientIdx(clientIdx);
     for (int i = 0; i < batchSize; i++) {
-      opBuilder.setType(isWrite ? writeTypes[i] : readTypes[i]);
-      opBuilder.setKey(isWrite ? writeKeys[i] : readKeys[i]);
+      opBuilder.setType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
+      opBuilder.setKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
       if (isWrite) {
-        opBuilder.setValue(writeVals[i]);
+        opBuilder.setValue(writeVals[shard][i]);
       }
       opBuilder.setTargetMemId(0);
       builder.addOps(opBuilder.build());
     }
 
-    // LIMITER.acquire();
-    // LOGGER.info("send batch " + batchSize);
     builder.addTime(System.nanoTime());
     BATCH_ID.accumulate(1);
     builder.setId(BATCH_ID.intValue());
     if (needReInit) {
-      requestObserver = asyncStub.doOp(buildReplyObserver());
+      requestObserver[shard] = asyncStub.doOp(buildReplyObserver(shard));
       needReInit = false;
     }
-    requestObserver.onNext(builder.build());
+    requestObserver[shard].onNext(builder.build());
     if (isWrite) {
-      writeBatchSize = 0;
+      writeBatchSize[shard] = 0;
     } else {
-      readBatchSize = 0;
+      readBatchSize[shard] = 0;
     }
     opssent.accumulate(batchSize);
     if (opssent.intValue() == opcount) {
-      builder.setId(-1);
-      requestObserver.onNext(builder.build());
-      System.out.println("sendTerminationMsg");
+      for (int i = 0; i < shard; i++) {
+        builder.setId(-1);
+        builder.setShardIdx(i);
+        requestObserver[i].onNext(builder.build());
+        System.out.println("Client " + clientIdx + " sends TerminationMsg to shard " + i);
+      }
     }
   }
   // [Rubble]
@@ -319,11 +321,12 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        readTypes[readBatchSize] = OpType.GET;
-        readKeys[readBatchSize] = key;
-        readBatchSize++;
-        if (readBatchSize == DB.BATCHSIZE) {
-          sendBatch(false);
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        readTypes[idx][readBatchSize[idx]] = OpType.GET;
+        readKeys[idx][readBatchSize[idx]] = key;
+        readBatchSize[idx]++;
+        if (readBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(false, idx);
         }
       } catch (Exception e) { 
         e.printStackTrace();
@@ -394,12 +397,13 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        writeTypes[writeBatchSize] = OpType.UPDATE;
-        writeKeys[writeBatchSize] = key;
-        writeVals[writeBatchSize] = new String(serializeValues(values));
-        writeBatchSize++;
-        if (writeBatchSize == DB.BATCHSIZE) {
-          sendBatch(true);
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        writeTypes[idx][writeBatchSize[idx]] = OpType.UPDATE;
+        writeKeys[idx][writeBatchSize[idx]] = key;
+        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        writeBatchSize[idx]++;
+        if (writeBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(true, idx);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -431,12 +435,13 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        writeTypes[writeBatchSize] = OpType.PUT;
-        writeKeys[writeBatchSize] = key;
-        writeVals[writeBatchSize] = new String(serializeValues(values));
-        writeBatchSize++;
-        if (writeBatchSize == DB.BATCHSIZE) {
-          sendBatch(true);
+        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
+        writeKeys[idx][writeBatchSize[idx]] = key;
+        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        writeBatchSize[idx]++;
+        if (writeBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(true, idx);
         }
       } catch (Exception e) {
         e.printStackTrace();

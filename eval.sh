@@ -39,7 +39,7 @@ ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash iostat.sh
 # start the replicator
 sudo killall java
 # replicator_args='-p shard=4 -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054 -p head3=10.10.1.3:50051 -p tail3=10.10.1.2:50053 -p head4=10.10.1.3:50052 -p tail4=10.10.1.2:50054'
-replicator_args='-p shard=4 -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054 -p head3=10.10.1.3:50051 -p tail3=10.10.1.2:50053 -p head4=10.10.1.3:50052 -p tail4=10.10.1.2:50054'
+replicator_args='-p shard=4 -p client=16 -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054 -p head3=10.10.1.3:50051 -p tail3=10.10.1.2:50053 -p head4=10.10.1.3:50052 -p tail4=10.10.1.2:50054'
 ./bin/ycsb.sh replicator rocksdb -s -P workloads/workload${workload} -p port=50050 $replicator_args -p replica=2 > replicator.out 2>&1 &
 
 # start ycsb
@@ -49,7 +49,7 @@ if [ $phase != load ]; then
     ssh ${USER}@10.10.1.2 "sudo cgset -r memory.limit_in_bytes=128G rubble-mem; sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
     ssh ${USER}@10.10.1.3 "sudo cgset -r memory.limit_in_bytes=128G rubble-mem; sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
 
-    bash load.sh $workload localhost:50050 4 $sleep_ms $rate 16 > ycsb.out 2>&1
+    bash load.sh $workload localhost:50050 4 $sleep_ms 150000 16 > ycsb.out 2>&1
 
     ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/primary/db/LOG"
     ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/primary/db/LOG"
