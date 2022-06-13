@@ -257,8 +257,8 @@ public class DBWrapper extends DB {
   }
 
   // [Rubble]
-  public void sendBatch(boolean isWrite, int shard) throws Exception {
-    int batchSize = isWrite ? writeBatchSize[shard] : readBatchSize[shard];
+  public void sendBatch(boolean isWrite, int shardIdx) throws Exception {
+    int batchSize = isWrite ? writeBatchSize[shardIdx] : readBatchSize[shardIdx];
     assert(batchSize <= DB.BATCHSIZE);
     if (batchSize == 0) {
       return;
@@ -267,13 +267,13 @@ public class DBWrapper extends DB {
     Op.Builder builder = Op.newBuilder();
     SingleOp.Builder opBuilder = SingleOp.newBuilder();
     builder.setHasEdits(false);
-    builder.setShardIdx(shard);
+    builder.setShardIdx(shardIdx);
     builder.setClientIdx(clientIdx);
     for (int i = 0; i < batchSize; i++) {
-      opBuilder.setType(isWrite ? writeTypes[shard][i] : readTypes[shard][i]);
-      opBuilder.setKey(isWrite ? writeKeys[shard][i] : readKeys[shard][i]);
+      opBuilder.setType(isWrite ? writeTypes[shardIdx][i] : readTypes[shardIdx][i]);
+      opBuilder.setKey(isWrite ? writeKeys[shardIdx][i] : readKeys[shardIdx][i]);
       if (isWrite) {
-        opBuilder.setValue(writeVals[shard][i]);
+        opBuilder.setValue(writeVals[shardIdx][i]);
       }
       opBuilder.setTargetMemId(0);
       builder.addOps(opBuilder.build());
@@ -283,18 +283,18 @@ public class DBWrapper extends DB {
     BATCH_ID.accumulate(1);
     builder.setId(BATCH_ID.intValue());
     if (needReInit) {
-      requestObserver[shard] = asyncStub.doOp(buildReplyObserver(shard));
+      requestObserver[shardIdx] = asyncStub.doOp(buildReplyObserver(shardIdx));
       needReInit = false;
     }
-    requestObserver[shard].onNext(builder.build());
+    requestObserver[shardIdx].onNext(builder.build());
     if (isWrite) {
-      writeBatchSize[shard] = 0;
+      writeBatchSize[shardIdx] = 0;
     } else {
-      readBatchSize[shard] = 0;
+      readBatchSize[shardIdx] = 0;
     }
     opssent.accumulate(batchSize);
     if (opssent.intValue() == opcount) {
-      for (int i = 0; i < shard; i++) {
+      for (int i = 0; i < shardNum; i++) {
         builder.setId(-1);
         builder.setShardIdx(i);
         requestObserver[i].onNext(builder.build());
