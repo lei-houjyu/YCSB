@@ -108,8 +108,8 @@ public class Replicator {
     server.start();
     LOGGER.info("Server started, listening on " + port);
     // start heartbeat
-    Thread thread = new Thread(new Ping());
-    thread.start();
+    // Thread thread = new Thread(new Ping());
+    // thread.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
