@@ -179,6 +179,7 @@ public class Replicator {
 
         @Override
         public void onError(Throwable t) {
+          System.out.println("sendReply.onError() " + clientIdx + " " + shardIdx);
           LOGGER.error("Encountered error in sendReply", t);
         }
 
@@ -186,6 +187,7 @@ public class Replicator {
         public void onCompleted() {
           observerMap[clientIdx][shardIdx].onCompleted();
           responseObserver.onCompleted();
+          System.out.println("sendReply.onCompleted() " + clientIdx + " " + shardIdx);
           System.out.println("responseObserver.onCompleted()");
         }
       };
@@ -292,6 +294,7 @@ public class Replicator {
 
         @Override
         public void onError(Throwable t) {
+          System.out.println("doOp.onError() " + clientIdx + " " + shardIdx);
           LOGGER.error("Encountered error in doOp", t);
         }
 
@@ -299,11 +302,11 @@ public class Replicator {
         public void onCompleted() {
           if (tailObserver != null) {
             tailObserver.onCompleted();
-            System.out.println("tailObserver.onCompleted()");
+            System.out.println("tailObserver.onCompleted() " + clientIdx + " " + shardIdx);
           }
           if (headObserver != null) {
             headObserver.onCompleted();
-            System.out.println("headObserver.onCompleted()");
+            System.out.println("headObserver.onCompleted() " + clientIdx + " " + shardIdx);
           }
         }
       };
