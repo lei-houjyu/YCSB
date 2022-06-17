@@ -64,7 +64,7 @@ public class Replicator {
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
     this.healthStub = new ArrayList<>(shardNum);
-    this.observerMap = new StreamObserver[clientNum][shardNum][2];
+    this.observerMap = new StreamObserver[shardNum][clientNum][2];
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
@@ -265,7 +265,7 @@ public class Replicator {
           assert(clientIdx == request.getClientIdx());
           assert(isWrite   == (request.getOps(0).getType() != OpType.GET));
 
-          if (responseObserver != observerMap[clientIdx][shardIdx][isWriteInt]) {
+          if (responseObserver != observerMap[shardIdx][clientIdx][isWriteInt]) {
             System.out.println("observerMap[" + shardIdx + "] " + "[" + clientIdx + "] " + "[" + isWriteInt + "] " +
                 "changes from " + observerMap[shardIdx][clientIdx][isWriteInt] + " to " + responseObserver);
             observerMap[shardIdx][clientIdx][isWriteInt] = responseObserver;
