@@ -39,6 +39,7 @@ import io.grpc.stub.StreamObserver;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
 
 import java.util.concurrent.TimeUnit;
+import java.sql.Timestamp;
 
 /**
  * Wrapper around a "real" DB that measures latencies and counts return codes.
@@ -70,7 +71,8 @@ public class DBWrapper extends DB {
   // [Rubble]
   private int shardNum;
   private int clientIdx;
-  private StreamObserver<Op>[] requestObserver;
+  private boolean onCompletedCalled = false;
+  private StreamObserver<Op>[][] requestObserver;
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L);
   private static final LongAccumulator BATCH_ID = new LongAccumulator(Long::sum, 0L);
@@ -132,9 +134,16 @@ public class DBWrapper extends DB {
     return db.getProperties();
   }
 
-  private StreamObserver<OpReply> buildReplyObserver(int shardIdx) {
+  private StreamObserver<OpReply> buildReplyObserver(int shardIdx, int clientId, boolean isWrite) {
     return new StreamObserver<OpReply>() {
       private int shard = shardIdx;
+      private int client = clientId;
+      private boolean write = isWrite;
+
+      private String logString(String prefix) {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        return prefix + " shard: " + shard + " client: " + client + " write:" + write + " " + timestamp;
+      }
       
       @Override
       public void onNext(OpReply reply) {
@@ -150,29 +159,47 @@ public class DBWrapper extends DB {
           }
           switch (reply.getReplies(i).getType()) {
             case GET:
-              measurements.measure("READ" + suffix, (int)latency);
+              synchronized(measurements) {
+                measurements.measure("READ" + suffix, (int)latency);
+              }
               break;
             case UPDATE:
-              measurements.measure("UPDATE" + suffix, (int)latency);
+              synchronized(measurements) {
+                measurements.measure("UPDATE" + suffix, (int)latency);
+              }
               break;
             case PUT:
-              measurements.measure("INSERT" + suffix, (int)latency);
+              synchronized(measurements) {
+                measurements.measure("INSERT" + suffix, (int)latency);
+              }
               break;
             default:
               LOGGER.error("Unsupported type!");
               break;
           }
         }
+
         opsdone.accumulate(batchSize);
+
         if (opsdone.intValue() == opcount) {
-          requestObserver[shard].onCompleted();
-          System.out.println("requestObserver.onCompleted " + shard);
+          synchronized(requestObserver) {
+            if (!onCompletedCalled) {
+              for (int i = 0; i < shardNum; i++) {
+                for (int j = 0; j < 2; j++) {
+                  requestObserver[i][j].onCompleted();
+                }
+              }
+              onCompletedCalled = true;
+              System.out.println(logString("requestObserver.onCompleted"));
+            }
+          }
         }
       }
 
       @Override
       public void onError(Throwable t) {
-        LOGGER.error("Encountered error in send", t);
+        System.out.println(logString("replyObserver.onError"));
+        LOGGER.error("Encountered error in sendReply", t);
       }
 
       @Override
@@ -180,7 +207,7 @@ public class DBWrapper extends DB {
         if (opsdone.intValue() != opcount) {
           needReInit = true;
         }
-        LOGGER.info("onCompleted from replicator");
+        System.out.println(logString("replyObserver.onCompleted"));
         // LIMITER.release();
       }
     };
@@ -218,9 +245,10 @@ public class DBWrapper extends DB {
     asyncStub = RubbleKvStoreServiceGrpc.newStub(channel);
     needReInit = false;
     shardNum = Integer.parseInt(getProperties().getProperty("shard"));
-    requestObserver = new StreamObserver[shardNum];
+    requestObserver = new StreamObserver[shardNum][2]; // one for write and one for read
     for (int i = 0; i < shardNum; i++) {
-      requestObserver[i] = asyncStub.doOp(buildReplyObserver(i));
+      requestObserver[i][0] = asyncStub.doOp(buildReplyObserver(i, clientIdx, false));
+      requestObserver[i][1] = asyncStub.doOp(buildReplyObserver(i, clientIdx, true));
     }
     writeTypes = new OpType[shardNum][DB.BATCHSIZE];
     writeKeys  = new String[shardNum][DB.BATCHSIZE];
@@ -258,6 +286,7 @@ public class DBWrapper extends DB {
 
   // [Rubble]
   public void sendBatch(boolean isWrite, int shardIdx) throws Exception {
+    int isWriteInt = isWrite ? 1 : 0;
     int batchSize = isWrite ? writeBatchSize[shardIdx] : readBatchSize[shardIdx];
     assert(batchSize <= DB.BATCHSIZE);
     if (batchSize == 0) {
@@ -283,10 +312,10 @@ public class DBWrapper extends DB {
     BATCH_ID.accumulate(1);
     builder.setId(BATCH_ID.intValue());
     if (needReInit) {
-      requestObserver[shardIdx] = asyncStub.doOp(buildReplyObserver(shardIdx));
+      requestObserver[shardIdx][isWriteInt] = asyncStub.doOp(buildReplyObserver(shardIdx, clientIdx, isWrite));
       needReInit = false;
     }
-    requestObserver[shardIdx].onNext(builder.build());
+    requestObserver[shardIdx][isWriteInt].onNext(builder.build());
     if (isWrite) {
       writeBatchSize[shardIdx] = 0;
     } else {
@@ -297,7 +326,9 @@ public class DBWrapper extends DB {
       for (int i = 0; i < shardNum; i++) {
         builder.setId(-1);
         builder.setShardIdx(i);
-        requestObserver[i].onNext(builder.build());
+        for (int j = 0; j < 2; j++) {
+          requestObserver[i][j].onNext(builder.build());
+        }
         System.out.println("Client " + clientIdx + " sends TerminationMsg to shard " + i);
       }
     }

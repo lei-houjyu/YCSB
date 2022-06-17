@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.LongAccumulator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.sql.Timestamp;
 
 
 /**
@@ -40,7 +41,7 @@ public class Replicator {
   private final ManagedChannel[] tailChannel;
   private static RubbleKvStoreServiceStub[] headStub; // added static
   private static RubbleKvStoreServiceStub[] tailStub;
-  private final StreamObserver[][] observerMap;
+  private final StreamObserver[][][] observerMap; // keys are [shardIdx][clientIdx][isWrite]
   private final ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(16);
   private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
 
@@ -63,7 +64,7 @@ public class Replicator {
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
     this.healthStub = new ArrayList<>(shardNum);
-    this.observerMap = new StreamObserver[clientNum][shardNum];
+    this.observerMap = new StreamObserver[clientNum][shardNum][2];
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
@@ -161,34 +162,41 @@ public class Replicator {
     @Override
     public StreamObserver<OpReply> sendReply(final StreamObserver<Reply> responseObserver) {
       return new StreamObserver<OpReply>() {
+        private boolean isWrite;
         private int shardIdx = -1;
         private int clientIdx = -1;
+        private int isWriteInt = -1;
+
+        private String logString(String prefix) {
+          Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+          return prefix + " shard: " + shardIdx + " client: " + clientIdx + " write:" + isWrite + " " + timestamp;
+        }
 
         @Override
         public void onNext(OpReply reply) {
           if (shardIdx == -1) {
-            shardIdx = reply.getShardIdx();
+            shardIdx   = reply.getShardIdx();
+            clientIdx  = reply.getClientIdx();
+            isWrite    = reply.getReplies(0).getType() != OpType.GET;
+            isWriteInt = isWrite ? 1 : 0;
           }
-          if (clientIdx == -1) {
-            clientIdx = reply.getClientIdx();
-          }
-          assert(shardIdx == reply.getShardIdx());
+          assert(shardIdx  == reply.getShardIdx());
           assert(clientIdx == reply.getClientIdx());
-          observerMap[clientIdx][shardIdx].onNext(reply);
+          assert(isWrite   == (reply.getReplies(0).getType() != OpType.GET));
+          observerMap[shardIdx][clientIdx][isWriteInt].onNext(reply);
         }
 
         @Override
         public void onError(Throwable t) {
-          System.out.println("sendReply.onError() " + clientIdx + " " + shardIdx);
+          System.out.println(logString("sendReply.onError"));
           LOGGER.error("Encountered error in sendReply", t);
         }
 
         @Override
         public void onCompleted() {
-          observerMap[clientIdx][shardIdx].onCompleted();
+          observerMap[shardIdx][clientIdx][isWriteInt].onCompleted();
           responseObserver.onCompleted();
-          System.out.println("sendReply.onCompleted() " + clientIdx + " " + shardIdx);
-          System.out.println("responseObserver.onCompleted()");
+          System.out.println(logString("sendReply.onCompleted"));
         }
       };
     }
@@ -196,15 +204,32 @@ public class Replicator {
     @Override
     public StreamObserver<Op> doOp(final StreamObserver<OpReply> responseObserver) {
       return new StreamObserver<Op>() {
+        private boolean isWrite;
         private int shardIdx = -1;
         private int clientIdx = -1;
+        private int isWriteInt = -1;
+
         private StreamObserver<Op> headObserver = null;
         private StreamObserver<Op> tailObserver = null;
         private StreamObserver<OpReply> headReplyObserver = null;
         private StreamObserver<OpReply> tailReplyObserver = null;
 
+        private String logString(String prefix) {
+          Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+          return prefix + " shard: " + shardIdx + " client: " + clientIdx + " write:" + isWrite + " " + timestamp;
+        }
+
         private void buildObserver(boolean isHead) {
           StreamObserver<OpReply> observer = new StreamObserver<OpReply>() {
+              private int shard = shardIdx;
+              private int client = clientIdx;
+              private boolean write = isHead;
+
+              private String logString(String prefix) {
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                return prefix + " shard: " + shard + " client: " + client + " write:" + write + " " + timestamp;
+              }
+                          
               @Override
               public void onNext(OpReply reply) {
                 LOGGER.error("[dumbObserver.onNext] should not reach here");
@@ -212,12 +237,12 @@ public class Replicator {
 
               @Override
               public void onError(Throwable t) {
-                LOGGER.error("error in dumbObserver", t);
+                System.out.println(logString("dumbObserver.onError"));
               }
 
               @Override
               public void onCompleted() {
-                System.out.println("dumbObserver.onCompleted()");
+                System.out.println(logString("dumbObserver.onCompleted"));
               }
           };
 
@@ -231,23 +256,24 @@ public class Replicator {
         @Override
         public void onNext(Op request) {
           if (shardIdx == -1) {
-            shardIdx = request.getShardIdx();
+            shardIdx   = request.getShardIdx();
+            clientIdx  = request.getClientIdx();
+            isWrite    = request.getOps(0).getType() != OpType.GET;
+            isWriteInt = isWrite ? 1 : 0;
           }
-          if (clientIdx == -1) {
-            clientIdx = request.getClientIdx();
-          }
-          assert(shardIdx == request.getShardIdx());
+          assert(shardIdx  == request.getShardIdx());
           assert(clientIdx == request.getClientIdx());
+          assert(isWrite   == (request.getOps(0).getType() != OpType.GET));
 
-          if (responseObserver != observerMap[clientIdx][shardIdx]) {
-            System.out.println("observerMap[" + clientIdx + "] [" + shardIdx + "] changes from " + 
-                observerMap[clientIdx][shardIdx] + " to " + responseObserver);
-            observerMap[clientIdx][shardIdx] = responseObserver;
+          if (responseObserver != observerMap[clientIdx][shardIdx][isWriteInt]) {
+            System.out.println("observerMap[" + shardIdx + "] " + "[" + clientIdx + "] " + "[" + isWriteInt + "] " +
+                "changes from " + observerMap[shardIdx][clientIdx][isWriteInt] + " to " + responseObserver);
+            observerMap[shardIdx][clientIdx][isWriteInt] = responseObserver;
           }
-          if (request.getOps(0).getType() == OpType.GET) {
-          // if (request.getOps(0).getType() == OpType.UNRECOGNIZED) { // send all requests to the head for debugging
+
+          if (!isWrite) {
             if (tailObserver == null) {
-              buildObserver(false);
+              buildObserver(isWrite);
               tailObserver = tailStub[shardIdx].doOp(tailReplyObserver);
               observerAccumulator.accumulate(1);
               // code snippet is not atomic, but initializing more observers does not harm
@@ -260,7 +286,7 @@ public class Replicator {
             tailObserver.onNext(request);
           } else {
             if (headObserver == null) {
-              buildObserver(true);
+              buildObserver(isWrite);
               headObserver = headStub[shardIdx].doOp(headReplyObserver);
               observerAccumulator.accumulate(1);
               if (observerAccumulator.longValue() > maxThreads.longValue()) {
@@ -294,7 +320,7 @@ public class Replicator {
 
         @Override
         public void onError(Throwable t) {
-          System.out.println("doOp.onError() " + clientIdx + " " + shardIdx);
+          System.out.println(logString("doOp.onError"));
           LOGGER.error("Encountered error in doOp", t);
         }
 
@@ -302,11 +328,11 @@ public class Replicator {
         public void onCompleted() {
           if (tailObserver != null) {
             tailObserver.onCompleted();
-            System.out.println("tailObserver.onCompleted() " + clientIdx + " " + shardIdx);
+            System.out.println(logString("tailObserver.onCompleted"));
           }
           if (headObserver != null) {
             headObserver.onCompleted();
-            System.out.println("headObserver.onCompleted() " + clientIdx + " " + shardIdx);
+            System.out.println(logString("headObserver.onCompleted"));
           }
         }
       };
