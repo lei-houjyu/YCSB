@@ -842,11 +842,17 @@ public class CoreWorkload extends Workload {
       String dbkey = CoreWorkload.buildKeyName(keynum, zeropadding, orderedinserts);
 
       HashMap<String, ByteIterator> values = buildValues(dbkey);
-      db.insert(table, dbkey, values);
+      ((DBWrapper)db).insert(table, dbkey, values, keynum);
     } finally {
-      transactioninsertkeysequence.acknowledge(keynum);
+      // transactioninsertkeysequence.acknowledge(keynum);
     }
   }
+
+  // Rubble
+  public void acknowledge(long keynum) {
+    transactioninsertkeysequence.acknowledge(keynum);
+  }
+  // Rubble
 
   /**
    * Creates a weighted discrete values with database operations for a workload to perform.

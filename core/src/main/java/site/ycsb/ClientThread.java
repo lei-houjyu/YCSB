@@ -18,6 +18,8 @@
 package site.ycsb;
 
 import site.ycsb.measurements.Measurements;
+import site.ycsb.workloads.CoreWorkload;
+
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
@@ -101,6 +103,7 @@ public class ClientThread implements Runnable {
   public void run() {
     try {
       db.init();
+      ((DBWrapper)db).setWorkload((CoreWorkload)workload);
     } catch (DBException e) {
       e.printStackTrace();
       e.printStackTrace(System.out);

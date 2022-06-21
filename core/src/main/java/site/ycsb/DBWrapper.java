@@ -20,6 +20,8 @@ package site.ycsb;
 import java.util.Map;
 
 import site.ycsb.measurements.Measurements;
+import site.ycsb.workloads.CoreWorkload;
+
 import org.apache.htrace.core.TraceScope;
 import org.apache.htrace.core.Tracer;
 import org.slf4j.Logger;
@@ -76,6 +78,7 @@ public class DBWrapper extends DB {
   private final LongAccumulator opsdone = new LongAccumulator(Long::sum, 0L);
   private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L);
   private static final LongAccumulator BATCH_ID = new LongAccumulator(Long::sum, 0L);
+  private static final long INVALID_KEYNUM = -1;
   private int opcount;
   private ManagedChannel channel;
   private RubbleKvStoreServiceStub asyncStub;
@@ -84,12 +87,14 @@ public class DBWrapper extends DB {
   private OpType[][] writeTypes;
   private String[][] writeKeys;
   private String[][] writeVals;
+  private long[][] writeKeynums;
   private int[] writeBatchSize;
   // read batch
   private OpType[][] readTypes;
   private String[][] readKeys;
   private int[] readBatchSize;
   private boolean needReInit;
+  private CoreWorkload workload;
   // [Rubble]
 
   public DBWrapper(final DB db, final Tracer tracer) {
@@ -117,6 +122,10 @@ public class DBWrapper extends DB {
 
   public void setOpCount(int c) {
     this.opcount = c;
+  }
+
+  public void setWorkload(CoreWorkload w) {
+    this.workload = w;
   }
   // [Rubble]
 
@@ -171,6 +180,10 @@ public class DBWrapper extends DB {
             case PUT:
               synchronized(measurements) {
                 measurements.measure("INSERT" + suffix, (int)latency);
+              }
+              long keynum = reply.getReplies(i).getKeynum();
+              if (keynum != INVALID_KEYNUM) {
+                workload.acknowledge(keynum);
               }
               break;
             default:
@@ -253,6 +266,7 @@ public class DBWrapper extends DB {
     writeTypes = new OpType[shardNum][DB.BATCHSIZE];
     writeKeys  = new String[shardNum][DB.BATCHSIZE];
     writeVals  = new String[shardNum][DB.BATCHSIZE];
+    writeKeynums = new long[shardNum][DB.BATCHSIZE];
     writeBatchSize = new int[shardNum];
     readTypes = new OpType[shardNum][DB.BATCHSIZE];
     readKeys  = new String[shardNum][DB.BATCHSIZE];
@@ -303,6 +317,7 @@ public class DBWrapper extends DB {
       opBuilder.setKey(isWrite ? writeKeys[shardIdx][i] : readKeys[shardIdx][i]);
       if (isWrite) {
         opBuilder.setValue(writeVals[shardIdx][i]);
+        opBuilder.setKeynum(writeKeynums[shardIdx][i]);
       }
       opBuilder.setTargetMemId(0);
       builder.addOps(opBuilder.build());
@@ -460,6 +475,11 @@ public class DBWrapper extends DB {
    */
   public Status insert(String table, String key,
                        Map<String, ByteIterator> values) {
+    return insert(table, key, values, INVALID_KEYNUM);
+  }
+
+  public Status insert(String table, String key,
+                       Map<String, ByteIterator> values, long keynum) {
     try (final TraceScope span = tracer.newScope(scopeStringInsert)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
@@ -470,6 +490,7 @@ public class DBWrapper extends DB {
         writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        writeKeynums[idx][writeBatchSize[idx]] = keynum;
         writeBatchSize[idx]++;
         if (writeBatchSize[idx] == DB.BATCHSIZE) {
           sendBatch(true, idx);
