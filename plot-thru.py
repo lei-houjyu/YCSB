@@ -7,6 +7,7 @@ file_name = sys.argv[1]
 agg_num = int(sys.argv[2])
 figure_name = file_name[:-4]
 data = []
+path = './figures/'
 
 agg_cnt = 0
 with open(file_name, 'r') as f:
@@ -37,7 +38,7 @@ plt.figure()
 plt.plot(time, data, label='YCSB')
 plt.xlabel('Second')
 plt.ylabel('Throughput (op/s)')
-plt.ylim([0, 80000])
+plt.ylim([0, 200000])
 plt.legend()
-plt.savefig(figure_name + '.jpg')
+plt.savefig(path + figure_name + '.jpg')
 plt.close()
