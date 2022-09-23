@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -213,6 +214,8 @@ public class Replicator {
         private StreamObserver<Op> tailObserver = null;
         private StreamObserver<OpReply> headReplyObserver = null;
         private StreamObserver<OpReply> tailReplyObserver = null;
+        private ClientCallStreamObserver<Op> headCallObserver = null;
+        private ClientCallStreamObserver<Op> tailCallObserver = null;
 
         private String logString(String prefix) {
           Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -275,19 +278,26 @@ public class Replicator {
             if (tailObserver == null) {
               buildObserver(isWrite);
               tailObserver = tailStub[shardIdx].doOp(tailReplyObserver);
+              tailCallObserver = (ClientCallStreamObserver<Op>)tailObserver;
               observerAccumulator.accumulate(1);
-              // code snippet is not atomic, but initializing more observers does not harm
-              // having a maxThreads value larger than the number of clients is fine
               if (observerAccumulator.longValue() > maxThreads.longValue()) {
                 maxThreads.accumulate(1);
               }
               System.out.println("observerAccumulator " + observerAccumulator.longValue() + " shard " + shardIdx);
+            }
+            while (!tailCallObserver.isReady()) {
+              try {
+                Thread.sleep(1);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
             }
             tailObserver.onNext(request);
           } else {
             if (headObserver == null) {
               buildObserver(isWrite);
               headObserver = headStub[shardIdx].doOp(headReplyObserver);
+              headCallObserver = (ClientCallStreamObserver<Op>)headObserver;
               observerAccumulator.accumulate(1);
               if (observerAccumulator.longValue() > maxThreads.longValue()) {
                 maxThreads.accumulate(1);
@@ -302,9 +312,15 @@ public class Replicator {
               System.out.println("Restarting head observer");
             }
 
+            while (!headCallObserver.isReady()) {
+              try {
+                Thread.sleep(1);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+            }
             headObserver.onNext(request);
             opssent.accumulate(request.getOpsCount());
-            // System.out.println("Ops sent: " + opssent.get());
           }
 
           // also send termination message to the head to clean all buffered requests in
