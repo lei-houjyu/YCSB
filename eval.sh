@@ -21,6 +21,10 @@ ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; sudo bash clean.sh 2 > /d
 # ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; sudo bash recover.sh 2 > /dev/null 2>&1;"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
+# ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/primary-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50051 10.10.1.3:50053 1 >> primary-1.out 2>&1 &"
+# ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/primary-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50052 10.10.1.3:50054 2 >> primary-2.out 2>&1 &"
+# ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/tail-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
+# ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/tail-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50051 10.10.1.3:50053 1 >> primary-1.out 2>&1 &"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50052 10.10.1.3:50054 2 >> primary-2.out 2>&1 &"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
@@ -31,17 +35,22 @@ ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; sudo bash clean.sh 2 > /d
 # ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; sudo bash recover.sh 2 > /dev/null 2>&1;"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
+# ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/primary-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50051 10.10.1.2:50053 1 >> primary-1.out 2>&1 &"
+# ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/primary-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50052 10.10.1.2:50054 2 >> primary-2.out 2>&1 &"
+# ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/tail-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
+# ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/code/my_rocksdb/rubble/tail-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50051 10.10.1.2:50053 1 >> primary-1.out 2>&1 &"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50052 10.10.1.2:50054 2 >> primary-2.out 2>&1 &"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
-ssh ${USER/}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
 
-ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,1,2,3 > /dev/null 2>&1 &"
+ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,2,4,6 > /dev/null 2>&1 &"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; ps aux | grep -E 'mem ./[primary|tail]' > pids.out"
 
-ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,1,2,3 > /dev/null 2>&1 &"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,2,4,6 > /dev/null 2>&1 &"
 ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; ps aux | grep -E 'mem ./[primary|tail]' > pids.out"
 
 # start the replicator
 sudo killall java
@@ -56,10 +65,10 @@ replicator_args="-p shard=${shard_num} -p client=${client_num} -p head1=10.10.1.
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
-    ssh ${USER}@10.10.1.2 "sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
-    ssh ${USER}@10.10.1.3 "sudo cgset -r cpuset.cpus=0-47 rubble-cpu"
+    ssh ${USER}@10.10.1.2 "sudo cgset -r cpuset.cpus=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126,128,130,132,134,136,138,140,142 rubble-cpu"
+    ssh ${USER}@10.10.1.3 "sudo cgset -r cpuset.cpus=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126,128,130,132,134,136,138,140,142 rubble-cpu"
 
-    bash load.sh $workload localhost:50050 $shard_num $sleep_ms 80000 $client_num > ycsb.out 2>&1
+    bash load.sh $workload localhost:50050 $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
     ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/1/primary/db/LOG"
     ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/db/2/primary/db/LOG"
@@ -75,8 +84,9 @@ if [ $phase != load ]; then
 fi
 
 ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
-#ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0-3 300 > /dev/null 2>&1 &"
-#ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0-3 300 > /dev/null 2>&1 &"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
+ssh ${USER}@10.10.1.2 "cd /mnt/code/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
+ssh ${USER}@10.10.1.3 "cd /mnt/code/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
 bash $phase.sh $workload localhost:50050 $shard_num $sleep_ms $rate $client_num >> ycsb.out 2>&1
 grep Throughput ycsb.out
 cp ycsb.out ycsb-${suffix}.out
