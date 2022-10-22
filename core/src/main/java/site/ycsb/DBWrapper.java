@@ -158,8 +158,7 @@ public class DBWrapper extends DB {
       public void onNext(OpReply reply) {
         //LOGGER.info("receive reply from replicator");
         int batchSize = reply.getRepliesCount();
-        // long latency = (System.nanoTime() - reply.getTime(0)) / 1000;
-        long latency = 0;
+        long latency = (System.nanoTime() - reply.getTime()) / 1000;
         for (int i = 0; i < batchSize; i++) {
           String suffix = "";
           if (!reply.getReplies(i).getOk()) {
@@ -323,7 +322,7 @@ public class DBWrapper extends DB {
       builder.addOps(opBuilder.build());
     }
 
-    builder.addTime(System.nanoTime());
+    builder.setTime(System.nanoTime());
     BATCH_ID.accumulate(1);
     builder.setId(BATCH_ID.intValue());
     if (needReInit) {

@@ -217,7 +217,7 @@ public class ChainNode {
 
           if (nodeType.equals(TAIL)) {
             //LOGGER.info("reply to replicator");
-            builder.addTime(request.getTime(0));
+            builder.setTime(request.getTime());
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
           } else {
