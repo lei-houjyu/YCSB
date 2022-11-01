@@ -71,15 +71,26 @@ if [ $phase != load ]; then
     bash load.sh $workload localhost:50050 $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
     ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/primary/db/LOG" &
+    pid[0]=$!
     ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/primary/db/LOG" &
+    pid[1]=$!
     ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/tail/db/LOG" &
+    pid[2]=$!
     ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/tail/db/LOG" &
+    pid[3]=$!
     ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/primary/db/LOG" &
+    pid[4]=$!
     ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/primary/db/LOG" &
+    pid[5]=$!
     ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/tail/db/LOG" &
+    pid[6]=$!
     ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/tail/db/LOG" &
+    pid[7]=$!
 
-    wait
+    for i in ${pid[@]}
+    do
+        wait $i
+    done
 
     ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
     ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
