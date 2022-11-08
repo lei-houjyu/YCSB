@@ -2,8 +2,8 @@
 
 set -x
 
-if [ $# != 6 ]; then
-    echo "Usage: bash eval.sh phase(run or load) workload target_rate result_suffix client_num mode"
+if [ $# != 8 ]; then
+    echo "Usage: bash eval.sh phase workload rate suffix client_num mode shard_num replication_factor"
     exit
 fi
 
@@ -13,107 +13,186 @@ rate=$3
 suffix=$4
 client_num=$5
 mode=$6
-shard_num=4
+shard_num=$7
+rf=$8
+cpu_num=$client_num
 
-# start nodes from tail to head
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo killall primary_node tail_node dstat iostat perf > /dev/null 2>&1;"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash clean.sh 2 > /dev/null 2>&1;"
-# ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash recover.sh 2 > /dev/null 2>&1;"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
-# ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/primary-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50051 10.10.1.3:50053 1 >> primary-1.out 2>&1 &"
-# ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/primary-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50052 10.10.1.3:50054 2 >> primary-2.out 2>&1 &"
-# ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/tail-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
-# ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/tail-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50051 10.10.1.3:50053 1 >> primary-1.out 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50052 10.10.1.3:50054 2 >> primary-2.out 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
+replicator_port=50040
+shard_port=50050
+rubble_dir="/mnt/data/my_rocksdb/rubble"
 
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo killall primary_node tail_node dstat iostat perf > /dev/null 2>&1;"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash clean.sh 2 > /dev/null 2>&1;"
-# ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash recover.sh 2 > /dev/null 2>&1;"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash change-mode.sh ${mode}"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
-# ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/primary-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50051 10.10.1.2:50053 1 >> primary-1.out 2>&1 &"
-# ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/primary-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./primary_node 50052 10.10.1.2:50054 2 >> primary-2.out 2>&1 &"
-# ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/tail-1.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
-# ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem env HEAPPROFILE=/mnt/data/my_rocksdb/rubble/tail-2.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50051 10.10.1.2:50053 1 >> primary-1.out 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./primary_node 50052 10.10.1.2:50054 2 >> primary-2.out 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50053 10.10.1.1:50050 1 >> tail-1.out 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ulimit -n 999999; ulimit -c unlimited; nohup sudo cgexec -g cpuset:rubble-cpu -g memory:rubble-mem ./tail_node 50054 10.10.1.1:50050 2 >> tail-2.out 2>&1 &"
+launch_node()
+{
+    ip=$1
+    port=$2
+    addr=$3
+    sid=$4
+    rid=$5
 
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,2,4,6 > /dev/null 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; ps aux | grep -E 'mem ./[primary|tail]' > pids.out"
+    cgroup_opts="cgexec -g cpuset:rubble-cpu -g memory:rubble-mem"
+    # gprof_opts="env HEAPPROFILE=${rubble_dir}/shard-${sid}.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so"
+    log="shard-${sid}-replica-${rid}.out"
+    
+    ssh ${USER}@${ip} "cd ${rubble_dir}; \
+        ulimit -n 999999; ulimit -c unlimited; \
+        nohup sudo ${cgroup_opts} ${gprof_opts} ./db_node ${port} ${addr} ${sid} ${rid} ${rf} > ${log} 2>&1 &"
+}
 
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; nohup sudo bash dstat.sh 0,2,4,6 > /dev/null 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; ps aux | grep -E 'mem ./[primary|tail]' > pids.out"
+set_cgroups()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash create_cgroups.sh ${cpu_num} > /dev/null 2>&1"
+    done
+}
 
-# start the replicator
-sudo killall java
-# replicator_args="-p shard=${shard_num} -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054 -p head3=10.10.1.3:50051 -p tail3=10.10.1.2:50053 -p head4=10.10.1.3:50052 -p tail4=10.10.1.2:50054"
-replicator_args="-p shard=${shard_num} -p client=${client_num} -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054 -p head3=10.10.1.3:50051 -p tail3=10.10.1.2:50053 -p head4=10.10.1.3:50052 -p tail4=10.10.1.2:50054"
-# replicator_args="-p shard=${shard_num} -p client=${client_num} -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053 -p head2=10.10.1.2:50052 -p tail2=10.10.1.3:50054"
-# replicator_args="-p shard=${shard_num} -p client=${client_num} -p head1=10.10.1.3:50051 -p tail1=10.10.1.2:50053 -p head2=10.10.1.3:50052 -p tail2=10.10.1.2:50054"
-# replicator_args="-p shard=${shard_num} -p client=${client_num} -p head1=10.10.1.2:50051 -p tail1=10.10.1.3:50053"
-./bin/ycsb.sh replicator rocksdb -s -P workloads/workload${workload} -p port=50050 $replicator_args -p replica=2 > replicator.out 2>&1 &
+launch_all_nodes()
+{
+    # 1. prepare the environment
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} ${rf} > /dev/null 2>&1;"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode}"
+    done
+    set_cgroups
 
-# start ycsb
-sleep_ms=1000
-echo "" > ycsb.out
-if [ $phase != load ]; then
-    ssh ${USER}@10.10.1.2 "sudo cgset -r cpuset.cpus=0-31,64-95 rubble-cpu"
-    ssh ${USER}@10.10.1.3 "sudo cgset -r cpuset.cpus=0-31,64-95 rubble-cpu"
+    # 2. launch DB instances on the server
+    for (( i=0; i<${shard_num}; i++ ))
+    do
+        port=$(($shard_port + $i))
 
-    bash load.sh $workload localhost:50050 $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+        for (( j=0; j<${rf}; j++ ))
+        do
+            ip="10.10.1."$((($i + $j) % $rf + 2))
+            if [ $j -eq $(($rf - 1)) ]
+            then
+                next_ip="10.10.1.1:"$replicator_port
+            else
+                next_ip="10.10.1."$((($i + $j + 1) % $rf + 2))":"$port
+            fi
+            launch_node $ip $port ${next_ip} $i $j
+        done
+    done
+}
 
-    ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/primary/db/LOG" &
-    pid[0]=$!
-    ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/primary/db/LOG" &
-    pid[1]=$!
-    ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/tail/db/LOG" &
-    pid[2]=$!
-    ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/tail/db/LOG" &
-    pid[3]=$!
-    ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/primary/db/LOG" &
-    pid[4]=$!
-    ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/primary/db/LOG" &
-    pid[5]=$!
-    ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/1/tail/db/LOG" &
-    pid[6]=$!
-    ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash wait-pending-jobs.sh /mnt/data/db/2/tail/db/LOG" &
-    pid[7]=$!
+record_stats()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup sudo bash dstat.sh ${cpu_num} > /dev/null 2>&1 &"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; ps aux | grep -E './db_node' > pids.out"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
+        # ssh ${USER}@${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
+    done
+}
+
+assemble_args()
+{
+    local arg="-p shard=${shard_num} -p client=${client_num} "
+    for (( i=0; i<${shard_num}; i++ ))
+    do
+        port=$(($shard_port + $i))
+        head_ip="10.10.1."$(($i % $rf + 2))
+        tail_ip="10.10.1."$((($i + $rf - 1) % rf + 2))
+        arg=$arg"-p head${i}=${head_ip}:${port} -p tail${i}=${tail_ip}:${port} "
+    done
+
+    echo $arg
+}
+
+relax_cpu()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        cpu=`ssh ${USER}@${ip} "lscpu | grep 'On-line CPU(s) list:' | awk '{print \\$(NF)}'"`
+        ssh ${USER}@${ip} "sudo cgset -r cpuset.cpus=${cpu} rubble-cpu"
+    done
+}
+
+wait_pending_jobs()
+{
+    pid=()
+
+    for (( i=0; i<${shard_num}; i++ ))
+    do
+        db_dir="/mnt/data/db/shard-${i}/db/LOG"
+
+        for (( j=0; j<${rf}; j++ ))
+        do
+            ip="10.10.1."$((($i + $j) % $rf + 2))
+            ssh ${USER}@${ip} "cd ${rubble_dir}; bash wait-pending-jobs.sh ${db_dir}" &
+            pid[$(($i * $rf + $j))]=$!
+        done
+    done
 
     for i in ${pid[@]}
     do
         wait $i
     done
+}
 
-    ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
-    ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; sudo bash create_cgroups.sh > /dev/null 2>&1"
+massacre()
+{
+    sudo killall java
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        ssh ${USER}@${ip} "sudo killall db_node dstat iostat perf top"
+    done
+}
+
+process_results()
+{
+    grep Throughput ycsb.out
+    cp ycsb.out ycsb-${suffix}.out
+    cp replicator.out replicator-${suffix}.out
+    python3 plot-thru.py ycsb-${suffix}.out 10
+
+    for (( i=0; i<${rf}; i++ ))
+    do
+        ip="10.10.1."$(($i + 2))
+        ssh ${USER}@${ip} "cd ${rubble_dir}; bash save-result.sh ${suffix}"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 4"
+        ssh ${USER}@${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10"
+    done
+}
+
+# 1. start db instances
+launch_all_nodes
+
+# 2. start the replicator
+sudo killall java
+replicator_args=$(assemble_args)
+./bin/ycsb.sh replicator rocksdb -s -P workloads/workload${workload} \
+    -p port=$replicator_port $replicator_args -p replica=$rf > replicator.out 2>&1 &
+
+# 3. load the database
+sleep_ms=1000
+echo "" > ycsb.out
+if [ $phase != load ]; then
+    relax_cpu
+
+    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+
+    wait_pending_jobs
+
+    set_cgroups
 fi
 
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
-bash $phase.sh $workload localhost:50050 $shard_num $sleep_ms $rate $client_num >> ycsb.out 2>&1
-grep Throughput ycsb.out
-cp ycsb.out ycsb-${suffix}.out
-python3 plot-thru.py ycsb-${suffix}.out 10
+# 4. record performance metrics
+record_stats
 
-# kill replicator, heads, and tails
-ssh ${USER}@10.10.1.2 "sudo killall primary_node tail_node dstat iostat perf top"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; bash save-result.sh ${suffix}"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.csv 10 4"
-ssh ${USER}@10.10.1.2 "cd /mnt/data/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
+# 5. run YCSB
+bash $phase.sh $workload localhost:$replicator_port $shard_num $sleep_ms $rate $client_num >> ycsb.out 2>&1
 
-ssh ${USER}@10.10.1.3 "sudo killall primary_node tail_node dstat iostat perf top"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; bash save-result.sh ${suffix}"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; python3 plot-dstat.py dstat-${suffix}.csv 10 4"
-ssh ${USER}@10.10.1.3 "cd /mnt/data/my_rocksdb/rubble; python3 plot-iostat.py iostat-${suffix}.out 10"
+# 6. kill all processes
+massacre
 
-sudo killall java
+# 7. save results and plot figures
+process_results
