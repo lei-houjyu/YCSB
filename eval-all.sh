@@ -10,8 +10,12 @@ shard_num=$2
 rf=$3
 suffix=$4
 
-workload=("a" "b" "c" "d")
-rate=(80000 120000 140000 240000)
+# workload=("a" "b" "c" "d")
+# rate=(80000 120000 140000 240000)
+
+workload=("a" "d")
+rate=(80000 240000)
+
 
 change_offload()
 {
@@ -22,28 +26,33 @@ change_offload()
 
 enable_offload()
 {
-change_offload 10.10.1.2 1
-change_offload 10.10.1.3 1
+    for (( i=0; i<${rf}; i++ )); do
+        ip="10.10.1."$(($i + 2))
+        change_offload $ip 1
+    done
 }
 
 disable_offload()
 {
-change_offload 10.10.1.2 0
-change_offload 10.10.1.3 0
+    for (( i=0; i<${rf}; i++ )); do
+        ip="10.10.1."$(($i + 2))
+        change_offload $ip 0
+    done
 }
 
-bash eval.sh load a 90000 baseline-load-$suffix 4 baseline $shard_num $rf
 disable_offload
 bash eval.sh load a 90000 rubble-load-$suffix 4 rubble $shard_num $rf
 enable_offload
 bash eval.sh load a 90000 rubble-offload-load-$suffix 4 rubble $shard_num $rf
+bash eval.sh load a 90000 baseline-load-$suffix 4 baseline $shard_num $rf
 
-for i in $(seq 0 0)
+
+for i in $(seq 0 1)
 do
     echo workload ${workload[$i]} rate ${rate[$i]} op/sec
-    bash eval.sh run ${workload[$i]} ${rate[$i]} baseline-${workload[$i]}-$suffix 4 baseline $shard_num $rf
     disable_offload
     bash eval.sh run ${workload[$i]} ${rate[$i]} rubble-${workload[$i]}-$suffix 4 rubble $shard_num $rf
     enable_offload
     bash eval.sh run ${workload[$i]} ${rate[$i]} rubble-offload-${workload[$i]}-$suffix 4 rubble $shard_num $rf
+    bash eval.sh run ${workload[$i]} ${rate[$i]} baseline-${workload[$i]}-$suffix 4 baseline $shard_num $rf
 done
