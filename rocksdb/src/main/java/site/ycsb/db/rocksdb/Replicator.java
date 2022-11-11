@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
+// import java.util.Arrays;
 import java.sql.Timestamp;
 
 
@@ -70,11 +70,11 @@ public class Replicator {
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
     // HEARTBEAT
-    this.replicationFactor = new int[shardNum];
-    int replicaPerChain = Integer.parseInt(props.getProperty("replica", "3"));
-    Arrays.fill(this.replicationFactor, replicaPerChain); // TODO: this is hard-coded
-    this.healthStub = new ArrayList<>(shardNum);
-    this.channels = new ArrayList<>(shardNum);
+    // this.replicationFactor = new int[shardNum];
+    // int replicaPerChain = Integer.parseInt(props.getProperty("replica", "3"));
+    // Arrays.fill(this.replicationFactor, replicaPerChain); // TODO: this is hard-coded
+    // this.healthStub = new ArrayList<>(shardNum);
+    // this.channels = new ArrayList<>(shardNum);
     // HEARTBEAT
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+i);
@@ -85,23 +85,23 @@ public class Replicator {
       this.headStub[i] = RubbleKvStoreServiceGrpc.newStub(this.headChannel[i]);
       this.tailStub[i] = RubbleKvStoreServiceGrpc.newStub(this.tailChannel[i]);
       // HEARTBEAT
-      this.healthStub.add(new ArrayList<RubbleKvStoreServiceBlockingStub>(replicationFactor[i]));
-      this.channels.add(new ArrayList<ManagedChannel>(replicationFactor[i]));
-      for(int j = 0; j < replicationFactor[i]; j++) {
-        // TODO: temporary fix on channel in 2 & 3 -node setup
-        if (j == 0) {
-          this.channels.get(i).add(headChannel[i]);
-          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.headChannel[i]));
-        } else if (j == replicationFactor[i]-1) {
-          this.channels.get(i).add(tailChannel[i]);
-          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
-        } else { // middle node
-          String middleNode = props.getProperty("middle"+(i+1)+"_"+j); // TMP FIX
-          ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
-          this.channels.get(i).add(middleChan);
-          this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
-        }
-      }
+      // this.healthStub.add(new ArrayList<RubbleKvStoreServiceBlockingStub>(replicationFactor[i]));
+      // this.channels.add(new ArrayList<ManagedChannel>(replicationFactor[i]));
+      // for(int j = 0; j < replicationFactor[i]; j++) {
+      //   // TODO: temporary fix on channel in 2 & 3 -node setup
+      //   if (j == 0) {
+      //     this.channels.get(i).add(headChannel[i]);
+      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.headChannel[i]));
+      //   } else if (j == replicationFactor[i]-1) {
+      //     this.channels.get(i).add(tailChannel[i]);
+      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
+      //   } else { // middle node
+      //     String middleNode = props.getProperty("middle"+(i+1)+"_"+j); // TMP FIX
+      //     ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
+      //     this.channels.get(i).add(middleChan);
+      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
+      //   }
+      // }
       // HEARTBEAT
     }
   }

@@ -21,6 +21,16 @@ replicator_port=50040
 shard_port=50050
 rubble_dir="/mnt/data/my_rocksdb/rubble"
 
+ssh_with_retry()
+{
+    ip=$1
+    cmd=$2
+    until ssh ${USER}@${ip} "$cmd exit 0"
+    do
+        sleep 1
+    done
+}
+
 launch_node()
 {
     ip=$1
@@ -31,9 +41,9 @@ launch_node()
 
     cgroup_opts="cgexec -g cpuset:rubble-cpu -g memory:rubble-mem"
     # gprof_opts="env HEAPPROFILE=${rubble_dir}/shard-${sid}.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so"
-    log="shard-${sid}-replica-${rid}.out"
+    log="shard-${sid}.out"
     
-    ssh ${USER}@${ip} "cd ${rubble_dir}; \
+    ssh_with_retry ${ip} "cd ${rubble_dir}; \
         ulimit -n 999999; ulimit -c unlimited; \
         nohup sudo ${cgroup_opts} ${gprof_opts} ./db_node ${port} ${addr} ${sid} ${rid} ${rf} > ${log} 2>&1 &"
 }
@@ -43,7 +53,7 @@ set_cgroups()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash create_cgroups.sh ${cpu_num} > /dev/null 2>&1"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash create_cgroups.sh ${cpu_num} > /dev/null 2>&1;"
     done
 }
 
@@ -53,9 +63,9 @@ launch_all_nodes()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} ${rf} > /dev/null 2>&1;"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode}"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode};"
     done
     set_cgroups
 
@@ -83,11 +93,11 @@ record_stats()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup sudo bash dstat.sh ${cpu_num} > /dev/null 2>&1 &"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; ps aux | grep -E './db_node' > pids.out"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
-        # ssh ${USER}@${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; nohup sudo bash dstat.sh ${cpu_num} > /dev/null 2>&1 &"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; ps aux | grep -E './db_node' > pids.out;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
+        # ssh_with_retry ${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 120 > /dev/null 2>&1 &"
     done
 }
 
@@ -110,8 +120,8 @@ relax_cpu()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        cpu=`ssh ${USER}@${ip} "lscpu | grep 'On-line CPU(s) list:' | awk '{print \\$(NF)}'"`
-        ssh ${USER}@${ip} "sudo cgset -r cpuset.cpus=${cpu} rubble-cpu"
+        cpu=`ssh_with_retry ${ip} "lscpu;" | grep "On-line CPU" | awk '{print $(NF)}'`
+        ssh_with_retry ${ip} "sudo cgset -r cpuset.cpus=${cpu} rubble-cpu;"
     done
 }
 
@@ -126,7 +136,7 @@ wait_pending_jobs()
         for (( j=0; j<${rf}; j++ ))
         do
             ip="10.10.1."$((($i + $j) % $rf + 2))
-            ssh ${USER}@${ip} "cd ${rubble_dir}; bash wait-pending-jobs.sh ${db_dir}" &
+            ssh_with_retry ${ip} "cd ${rubble_dir}; bash wait-pending-jobs.sh ${db_dir};" &
             pid[$(($i * $rf + $j))]=$!
         done
     done
@@ -143,7 +153,7 @@ massacre()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        ssh ${USER}@${ip} "sudo killall db_node dstat iostat perf top"
+        ssh_with_retry ${ip} "sudo killall db_node dstat iostat perf top;"
     done
 }
 
@@ -157,9 +167,9 @@ process_results()
     for (( i=0; i<${rf}; i++ ))
     do
         ip="10.10.1."$(($i + 2))
-        ssh ${USER}@${ip} "cd ${rubble_dir}; bash save-result.sh ${suffix}"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 4"
-        ssh ${USER}@${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 4;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10;"
     done
 }
 
