@@ -4,6 +4,7 @@ set -x
 
 if [ $# != 8 ]; then
     echo "Usage: bash eval.sh phase workload rate suffix client_num mode shard_num replication_factor"
+    echo "Got: $@"
     exit
 fi
 
