@@ -18,14 +18,16 @@ shard_num=$7
 rf=$8
 cpu_num=$client_num
 
+echo -e "\033[0;32m ${phase} ${workload} ${mode} \033[0m"
+
 replicator_port=50040
 shard_port=50050
 rubble_dir="/mnt/data/my_rocksdb/rubble"
 
 ssh_with_retry()
 {
-    ip=$1
-    cmd=$2
+    local ip=$1
+    local cmd=$2
     until ssh ${USER}@${ip} "$cmd exit 0"
     do
         sleep 1
@@ -34,15 +36,15 @@ ssh_with_retry()
 
 launch_node()
 {
-    ip=$1
-    port=$2
-    addr=$3
-    sid=$4
-    rid=$5
+    local ip=$1
+    local port=$2
+    local addr=$3
+    local sid=$4
+    local rid=$5
 
-    cgroup_opts="cgexec -g cpuset:rubble-cpu -g memory:rubble-mem"
+    local cgroup_opts="cgexec -g cpuset:rubble-cpu -g memory:rubble-mem"
     # gprof_opts="env HEAPPROFILE=${rubble_dir}/shard-${sid}.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so"
-    log="shard-${sid}.out"
+    local log="shard-${sid}.out"
     
     ssh_with_retry ${ip} "cd ${rubble_dir}; \
         ulimit -n 999999; ulimit -c unlimited; \
@@ -53,7 +55,7 @@ set_cgroups()
 {
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
+        local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash create_cgroups.sh ${cpu_num} > /dev/null 2>&1;"
     done
 }
@@ -63,7 +65,7 @@ launch_all_nodes()
     # 1. prepare the environment
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
+        local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode};"
@@ -73,16 +75,16 @@ launch_all_nodes()
     # 2. launch DB instances on the server
     for (( i=0; i<${shard_num}; i++ ))
     do
-        port=$(($shard_port + $i))
+        local port=$(($shard_port + $i))
 
         for (( j=0; j<${rf}; j++ ))
         do
-            ip="10.10.1."$((($i + $j) % $rf + 2))
+            local ip="10.10.1."$((($i + $j) % $rf + 2))
             if [ $j -eq $(($rf - 1)) ]
             then
-                next_ip="10.10.1.1:"$replicator_port
+                local next_ip="10.10.1.1:"$replicator_port
             else
-                next_ip="10.10.1."$((($i + $j + 1) % $rf + 2))":"$port
+                local next_ip="10.10.1."$((($i + $j + 1) % $rf + 2))":"$port
             fi
             launch_node $ip $port ${next_ip} $i $j
         done
@@ -93,7 +95,7 @@ record_stats()
 {
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
+        local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup sudo bash dstat.sh ${cpu_num} > /dev/null 2>&1 &"
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
         ssh_with_retry ${ip} "cd ${rubble_dir}; ps aux | grep -E './db_node' > pids.out;"
@@ -107,9 +109,9 @@ assemble_args()
     local arg="-p shard=${shard_num} -p client=${client_num} "
     for (( i=0; i<${shard_num}; i++ ))
     do
-        port=$(($shard_port + $i))
-        head_ip="10.10.1."$(($i % $rf + 2))
-        tail_ip="10.10.1."$((($i + $rf - 1) % rf + 2))
+        local port=$(($shard_port + $i))
+        local head_ip="10.10.1."$(($i % $rf + 2))
+        local tail_ip="10.10.1."$((($i + $rf - 1) % rf + 2))
         arg=$arg"-p head${i}=${head_ip}:${port} -p tail${i}=${tail_ip}:${port} "
     done
 
@@ -120,8 +122,8 @@ relax_cpu()
 {
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
-        cpu=`ssh_with_retry ${ip} "lscpu;" | grep "On-line CPU" | awk '{print $(NF)}'`
+        local ip="10.10.1."$(($i + 2))
+        local cpu=`ssh_with_retry ${ip} "lscpu;" | grep "NUMA node0 CPU(s)" | awk '{print $(NF)}'`
         ssh_with_retry ${ip} "sudo cgset -r cpuset.cpus=${cpu} rubble-cpu;"
     done
 }
@@ -136,7 +138,7 @@ wait_pending_jobs()
 
         for (( j=0; j<${rf}; j++ ))
         do
-            ip="10.10.1."$((($i + $j) % $rf + 2))
+            local ip="10.10.1."$((($i + $j) % $rf + 2))
             ssh_with_retry ${ip} "cd ${rubble_dir}; bash wait-pending-jobs.sh ${db_dir};" &
             pid[$(($i * $rf + $j))]=$!
         done
@@ -153,7 +155,7 @@ massacre()
     sudo killall java
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
+        local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "sudo killall db_node dstat iostat perf top;"
     done
 }
@@ -167,9 +169,9 @@ process_results()
 
     for (( i=0; i<${rf}; i++ ))
     do
-        ip="10.10.1."$(($i + 2))
+        local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 4;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 ${cpu_num};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10;"
     done
 }
@@ -187,9 +189,9 @@ replicator_args=$(assemble_args)
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
-    relax_cpu
+    #relax_cpu
 
-    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 90000 $client_num > ycsb.out 2>&1
 
     wait_pending_jobs
 
