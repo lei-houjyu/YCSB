@@ -1,0 +1,1066 @@
+
+/usr/bin/java -Xmx64G -XX:MaxDirectMemorySize=64G -classpath /root/YCSB/conf:/root/YCSB/core/target/core-0.18.0-SNAPSHOT.jar:/root/YCSB/rocksdb/target/rocksdb-binding-0.18.0-SNAPSHOT.jar:/root/YCSB/rocksdb/target/dependency/HdrHistogram-2.1.4.jar:/root/YCSB/rocksdb/target/dependency/animal-sniffer-annotations-1.19.jar:/root/YCSB/rocksdb/target/dependency/annotations-4.1.1.4.jar:/root/YCSB/rocksdb/target/dependency/checker-compat-qual-2.5.5.jar:/root/YCSB/rocksdb/target/dependency/error_prone_annotations-2.4.0.jar:/root/YCSB/rocksdb/target/dependency/failureaccess-1.0.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-api-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-context-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-core-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-netty-shaded-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-protobuf-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-protobuf-lite-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/grpc-stub-1.37.1.jar:/root/YCSB/rocksdb/target/dependency/gson-2.8.6.jar:/root/YCSB/rocksdb/target/dependency/guava-30.0-android.jar:/root/YCSB/rocksdb/target/dependency/htrace-core4-4.1.0-incubating.jar:/root/YCSB/rocksdb/target/dependency/j2objc-annotations-1.3.jar:/root/YCSB/rocksdb/target/dependency/jcip-annotations-1.0.jar:/root/YCSB/rocksdb/target/dependency/jsr305-3.0.2.jar:/root/YCSB/rocksdb/target/dependency/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/root/YCSB/rocksdb/target/dependency/perfmark-api-0.23.0.jar:/root/YCSB/rocksdb/target/dependency/proto-google-common-protos-2.0.1.jar:/root/YCSB/rocksdb/target/dependency/protobuf-java-3.12.0.jar:/root/YCSB/rocksdb/target/dependency/rocksdbjni-6.14.0.jar:/root/YCSB/rocksdb/target/dependency/slf4j-api-1.7.25.jar:/root/YCSB/rocksdb/target/dependency/slf4j-simple-1.7.25.jar site.ycsb.Client -load -db site.ycsb.db.rocksdb.RocksDBClient -s -P workloads/workloada -p rocksdb.dir=null -p replicator=localhost:50040 -p shard=4 -p status.interval=1000 -p target=90000 -threads 4
+Command line: -load -db site.ycsb.db.rocksdb.RocksDBClient -s -P workloads/workloada -p rocksdb.dir=null -p replicator=localhost:50040 -p shard=4 -p status.interval=1000 -p target=90000 -threads 4
+threadcount: 4
+YCSB Client 0.18.0-SNAPSHOT
+
+Loading workload...
+Starting test.
+[Thread-2] INFO site.ycsb.db.rocksdb.RocksDBClient - RocksDB data dir: null
+2022-11-25 15:04:38:776 0 sec: 0 operations; est completion in 0 second 
+DBWrapper: report latency for each error is false and specific error codes to track for latency are: []
+2022-11-25 15:04:39:749 1 sec: 0 operations; est completion in 106751991167300 days 15 hours [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:40:749 2 sec: 144000 operations; 144144.14 current ops/sec; est completion in 9 minutes [INSERT: Count=144000, Max=799231, Min=32528, Avg=336879.06, 90=653823, 99=751615, 99.9=799231, 99.99=799231] 
+2022-11-25 15:04:41:749 3 sec: 194000 operations; 50000 current ops/sec; est completion in 10 minutes [INSERT: Count=50000, Max=485631, Min=38496, Avg=227155.2, 90=395775, 99=485631, 99.9=485631, 99.99=485631] 
+2022-11-25 15:04:42:749 4 sec: 208000 operations; 14000 current ops/sec; est completion in 12 minutes [INSERT: Count=14000, Max=493055, Min=402176, Avg=443044.57, 90=489471, 99=493055, 99.9=493055, 99.99=493055] 
+2022-11-25 15:04:43:749 5 sec: 208000 operations; 0 current ops/sec; est completion in 15 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:44:749 6 sec: 208000 operations; 0 current ops/sec; est completion in 19 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:45:749 7 sec: 208000 operations; 0 current ops/sec; est completion in 22 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:46:749 8 sec: 208000 operations; 0 current ops/sec; est completion in 25 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:47:749 9 sec: 208000 operations; 0 current ops/sec; est completion in 28 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:48:749 10 sec: 208000 operations; 0 current ops/sec; est completion in 31 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:49:749 11 sec: 208000 operations; 0 current ops/sec; est completion in 34 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:50:749 12 sec: 208000 operations; 0 current ops/sec; est completion in 37 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:51:749 13 sec: 208000 operations; 0 current ops/sec; est completion in 40 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:52:749 14 sec: 208000 operations; 0 current ops/sec; est completion in 43 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:53:749 15 sec: 208000 operations; 0 current ops/sec; est completion in 46 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:54:749 16 sec: 208000 operations; 0 current ops/sec; est completion in 49 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:55:749 17 sec: 208000 operations; 0 current ops/sec; est completion in 52 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:56:749 18 sec: 208000 operations; 0 current ops/sec; est completion in 55 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:57:749 19 sec: 208000 operations; 0 current ops/sec; est completion in 58 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:58:749 20 sec: 208000 operations; 0 current ops/sec; est completion in 1 hour 1 minute [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:04:59:749 21 sec: 208000 operations; 0 current ops/sec; est completion in 1 hour 4 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:05:00:749 22 sec: 208000 operations; 0 current ops/sec; est completion in 1 hour 7 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:05:01:749 23 sec: 208000 operations; 0 current ops/sec; est completion in 1 hour 9 minutes [INSERT: Count=0, Max=0, Min=9223372036854775807, Avg=NaN, 90=0, 99=0, 99.9=0, 99.99=0] 
+2022-11-25 15:05:02:749 24 sec: 287000 operations; 79000 current ops/sec; est completion in 52 minutes [INSERT: Count=79000, Max=20660223, Min=19234816, Avg=20085435.95, 90=20496383, 99=20660223, 99.9=20660223, 99.99=20660223] 
+2022-11-25 15:05:03:749 25 sec: 440000 operations; 153000 current ops/sec; est completion in 35 minutes [INSERT: Count=153000, Max=21823487, Min=17858560, Avg=19713003.92, 90=21561343, 99=21790719, 99.9=21823487, 99.99=21823487] 
+2022-11-25 15:05:04:749 26 sec: 621000 operations; 181000 current ops/sec; est completion in 26 minutes [INSERT: Count=181000, Max=21381119, Min=16424960, Avg=19179305.02, 90=20987903, 99=21331967, 99.9=21381119, 99.99=21381119] 
+2022-11-25 15:05:05:749 27 sec: 806000 operations; 185000 current ops/sec; est completion in 21 minutes [INSERT: Count=185000, Max=20365311, Min=15409152, Avg=18156992.35, 90=19988479, 99=20332543, 99.9=20365311, 99.99=20365311] 
+2022-11-25 15:05:06:749 28 sec: 989000 operations; 183000 current ops/sec; est completion in 17 minutes [INSERT: Count=183000, Max=19644415, Min=14262272, Avg=17138425.01, 90=19005439, 99=19513343, 99.9=19644415, 99.99=19644415] 
+2022-11-25 15:05:07:749 29 sec: 1171000 operations; 182000 current ops/sec; est completion in 15 minutes [INSERT: Count=182000, Max=18644991, Min=12935168, Avg=16082291.34, 90=17956863, 99=18546687, 99.9=18644991, 99.99=18644991] 
+2022-11-25 15:05:08:749 30 sec: 1346000 operations; 175000 current ops/sec; est completion in 13 minutes [INSERT: Count=175000, Max=17563647, Min=11452416, Avg=15078920.78, 90=17022975, 99=17448959, 99.9=17563647, 99.99=17563647] 
+2022-11-25 15:05:09:749 31 sec: 1543000 operations; 197000 current ops/sec; est completion in 12 minutes [INSERT: Count=197000, Max=16580607, Min=10854400, Avg=14124151.55, 90=15917055, 99=16556031, 99.9=16580607, 99.99=16580607] 
+2022-11-25 15:05:10:749 32 sec: 1724000 operations; 181000 current ops/sec; est completion in 11 minutes [INSERT: Count=181000, Max=15482879, Min=9895936, Avg=12835483.58, 90=14843903, 99=15319039, 99.9=15482879, 99.99=15482879] 
+2022-11-25 15:05:11:749 33 sec: 1894000 operations; 170000 current ops/sec; est completion in 10 minutes [INSERT: Count=170000, Max=15048703, Min=9428992, Avg=12048215.34, 90=13869055, 99=14917631, 99.9=15048703, 99.99=15048703] 
+2022-11-25 15:05:12:749 34 sec: 2082000 operations; 188000 current ops/sec; est completion in 10 minutes [INSERT: Count=188000, Max=14237695, Min=8290304, Avg=11007422.64, 90=12861439, 99=14147583, 99.9=14237695, 99.99=14237695] 
+2022-11-25 15:05:13:749 35 sec: 2201000 operations; 119000 current ops/sec; est completion in 9 minutes [INSERT: Count=119000, Max=13500415, Min=8339456, Avg=10733877.78, 90=12247039, 99=13434879, 99.9=13500415, 99.99=13500415] 
+2022-11-25 15:05:14:749 36 sec: 2323000 operations; 122000 current ops/sec; est completion in 9 minutes [INSERT: Count=122000, Max=11968511, Min=7716864, Avg=9800133.25, 90=11558911, 99=11911167, 99.9=11968511, 99.99=11968511] 
+2022-11-25 15:05:15:749 37 sec: 2473000 operations; 150000 current ops/sec; est completion in 9 minutes [INSERT: Count=150000, Max=12206079, Min=6094848, Avg=9041018.88, 90=11108351, 99=12042239, 99.9=12206079, 99.99=12206079] 
+2022-11-25 15:05:16:749 38 sec: 2631000 operations; 158000 current ops/sec; est completion in 8 minutes [INSERT: Count=158000, Max=12042239, Min=5189632, Avg=8908125.97, 90=10846207, 99=11968511, 99.9=12042239, 99.99=12042239] 
+2022-11-25 15:05:17:749 39 sec: 2777000 operations; 146000 current ops/sec; est completion in 8 minutes [INSERT: Count=146000, Max=10919935, Min=5705728, Avg=8367230.25, 90=9895935, 99=10887167, 99.9=10919935, 99.99=10919935] 
+2022-11-25 15:05:18:749 40 sec: 2843000 operations; 66000 current ops/sec; est completion in 8 minutes [INSERT: Count=66000, Max=10035199, Min=5902336, Avg=7975346.42, 90=9535487, 99=10035199, 99.9=10035199, 99.99=10035199] 
+2022-11-25 15:05:19:749 41 sec: 2916000 operations; 73000 current ops/sec; est completion in 8 minutes [INSERT: Count=73000, Max=10174463, Min=5619712, Avg=7723232.44, 90=9568255, 99=10174463, 99.9=10174463, 99.99=10174463] 
+2022-11-25 15:05:20:749 42 sec: 3061000 operations; 145000 current ops/sec; est completion in 8 minutes [INSERT: Count=145000, Max=10706943, Min=4227072, Avg=7440878.34, 90=10321919, 99=10600447, 99.9=10706943, 99.99=10706943] 
+2022-11-25 15:05:21:749 43 sec: 3227000 operations; 165834.17 current ops/sec; est completion in 8 minutes [INSERT: Count=166000, Max=10330111, Min=2709504, Avg=7117898.02, 90=9740287, 99=10280959, 99.9=10330111, 99.99=10330111] 
+2022-11-25 15:05:22:749 44 sec: 3390000 operations; 163163.16 current ops/sec; est completion in 7 minutes [INSERT: Count=163000, Max=9846783, Min=1778688, Avg=6306702.92, 90=8937471, 99=9699327, 99.9=9846783, 99.99=9846783] 
+2022-11-25 15:05:23:749 45 sec: 3534000 operations; 144000 current ops/sec; est completion in 7 minutes [INSERT: Count=144000, Max=8757247, Min=1628160, Avg=5970147.56, 90=8167423, 99=8740863, 99.9=8757247, 99.99=8757247] 
+2022-11-25 15:05:24:749 46 sec: 3651000 operations; 117000 current ops/sec; est completion in 7 minutes [INSERT: Count=117000, Max=7933951, Min=2430976, Avg=5762021.74, 90=7172095, 99=7921663, 99.9=7933951, 99.99=7933951] 
+2022-11-25 15:05:25:749 47 sec: 3728000 operations; 77000 current ops/sec; est completion in 7 minutes [INSERT: Count=77000, Max=7036927, Min=2271232, Avg=4870995.12, 90=6086655, 99=7036927, 99.9=7036927, 99.99=7036927] 
+2022-11-25 15:05:26:749 48 sec: 3812000 operations; 84000 current ops/sec; est completion in 7 minutes [INSERT: Count=84000, Max=7819263, Min=1950720, Avg=4570069.33, 90=6557695, 99=7819263, 99.9=7819263, 99.99=7819263] 
+2022-11-25 15:05:27:749 49 sec: 3958000 operations; 146000 current ops/sec; est completion in 7 minutes [INSERT: Count=146000, Max=7876607, Min=1229824, Avg=4659456, 90=7102463, 99=7831551, 99.9=7876607, 99.99=7876607] 
+2022-11-25 15:05:28:749 50 sec: 4124000 operations; 166000 current ops/sec; est completion in 7 minutes [INSERT: Count=166000, Max=7770111, Min=785920, Avg=4230302.84, 90=6864895, 99=7749631, 99.9=7770111, 99.99=7770111] 
+2022-11-25 15:05:29:749 51 sec: 4269000 operations; 145000 current ops/sec; est completion in 7 minutes [INSERT: Count=145000, Max=6684671, Min=660992, Avg=3872390.18, 90=6017023, 99=6619135, 99.9=6684671, 99.99=6684671] 
+2022-11-25 15:05:30:749 52 sec: 4383000 operations; 114000 current ops/sec; est completion in 7 minutes [INSERT: Count=114000, Max=5672959, Min=270592, Avg=3456243.65, 90=5009407, 99=5570559, 99.9=5672959, 99.99=5672959] 
+2022-11-25 15:05:31:749 53 sec: 4449000 operations; 66000 current ops/sec; est completion in 7 minutes [INSERT: Count=66000, Max=4792319, Min=1214464, Avg=3094473.7, 90=4308991, 99=4792319, 99.9=4792319, 99.99=4792319] 
+2022-11-25 15:05:32:749 54 sec: 4523000 operations; 74000 current ops/sec; est completion in 7 minutes [INSERT: Count=74000, Max=5451775, Min=241792, Avg=2324973.84, 90=3553279, 99=5451775, 99.9=5451775, 99.99=5451775] 
+2022-11-25 15:05:33:749 55 sec: 4632000 operations; 109000 current ops/sec; est completion in 6 minutes [INSERT: Count=109000, Max=6139903, Min=35328, Avg=2599631.85, 90=5705727, 99=6090751, 99.9=6139903, 99.99=6139903] 
+2022-11-25 15:05:34:749 56 sec: 4748000 operations; 116000 current ops/sec; est completion in 6 minutes [INSERT: Count=116000, Max=6672383, Min=31728, Avg=2792545.31, 90=5070847, 99=5378047, 99.9=6672383, 99.99=6672383] 
+2022-11-25 15:05:35:749 57 sec: 4887000 operations; 139000 current ops/sec; est completion in 6 minutes [INSERT: Count=139000, Max=6819839, Min=37472, Avg=3154434.3, 90=5431295, 99=6672383, 99.9=6819839, 99.99=6819839] 
+2022-11-25 15:05:36:749 58 sec: 5030000 operations; 143000 current ops/sec; est completion in 6 minutes [INSERT: Count=143000, Max=5636095, Min=65600, Avg=2509499.52, 90=4012031, 99=5500927, 99.9=5636095, 99.99=5636095] 
+2022-11-25 15:05:37:749 59 sec: 5178000 operations; 147852.15 current ops/sec; est completion in 6 minutes [INSERT: Count=148000, Max=4739071, Min=29600, Avg=1549310.81, 90=2795519, 99=4694015, 99.9=4739071, 99.99=4739071] 
+2022-11-25 15:05:38:749 60 sec: 5286000 operations; 108108.11 current ops/sec; est completion in 6 minutes [INSERT: Count=108000, Max=3837951, Min=31856, Avg=906983.7, 90=1905663, 99=3758079, 99.9=3837951, 99.99=3837951] 
+2022-11-25 15:05:39:749 61 sec: 5350000 operations; 64000 current ops/sec; est completion in 6 minutes [INSERT: Count=64000, Max=3172351, Min=29744, Avg=828276.12, 90=2590719, 99=3172351, 99.9=3172351, 99.99=3172351] 
+2022-11-25 15:05:40:749 62 sec: 5392000 operations; 42000 current ops/sec; est completion in 6 minutes [INSERT: Count=42000, Max=3168255, Min=29984, Avg=785904, 90=2627583, 99=3168255, 99.9=3168255, 99.99=3168255] 
+2022-11-25 15:05:41:749 63 sec: 5504000 operations; 112000 current ops/sec; est completion in 6 minutes [INSERT: Count=112000, Max=3846143, Min=32800, Avg=1511689.71, 90=3346431, 99=3837951, 99.9=3846143, 99.99=3846143] 
+2022-11-25 15:05:42:749 64 sec: 5618000 operations; 114000 current ops/sec; est completion in 6 minutes [INSERT: Count=114000, Max=3432447, Min=32720, Avg=1456131.02, 90=3256319, 99=3422207, 99.9=3432447, 99.99=3432447] 
+2022-11-25 15:05:43:749 65 sec: 5751000 operations; 133000 current ops/sec; est completion in 6 minutes [INSERT: Count=133000, Max=3106815, Min=31520, Avg=1286911.88, 90=2664447, 99=3096575, 99.9=3106815, 99.99=3106815] 
+2022-11-25 15:05:44:749 66 sec: 5883000 operations; 132000 current ops/sec; est completion in 6 minutes [INSERT: Count=132000, Max=1796095, Min=30464, Avg=632890.3, 90=1447935, 99=1770495, 99.9=1796095, 99.99=1796095] 
+2022-11-25 15:05:45:749 67 sec: 5991000 operations; 108000 current ops/sec; est completion in 6 minutes [INSERT: Count=108000, Max=834559, Min=28032, Avg=107408, 90=367359, 99=694271, 99.9=834559, 99.99=834559] 
+2022-11-25 15:05:46:749 68 sec: 6072000 operations; 81000 current ops/sec; est completion in 6 minutes [INSERT: Count=81000, Max=229375, Min=28672, Avg=49459.75, 90=66495, 99=229375, 99.9=229375, 99.99=229375] 
+2022-11-25 15:05:47:749 69 sec: 6167000 operations; 95000 current ops/sec; est completion in 6 minutes [INSERT: Count=95000, Max=624127, Min=29264, Avg=118188.21, 90=389119, 99=624127, 99.9=624127, 99.99=624127] 
+2022-11-25 15:05:48:749 70 sec: 6260000 operations; 93000 current ops/sec; est completion in 6 minutes [INSERT: Count=93000, Max=235647, Min=30096, Avg=53361.98, 90=81023, 99=235647, 99.9=235647, 99.99=235647] 
+2022-11-25 15:05:49:749 71 sec: 6350000 operations; 90000 current ops/sec; est completion in 6 minutes [INSERT: Count=90000, Max=215039, Min=28752, Avg=46121.69, 90=65023, 99=215039, 99.9=215039, 99.99=215039] 
+2022-11-25 15:05:50:749 72 sec: 6438000 operations; 88000 current ops/sec; est completion in 6 minutes [INSERT: Count=88000, Max=247039, Min=29152, Avg=49832, 90=75199, 99=247039, 99.9=247039, 99.99=247039] 
+2022-11-25 15:05:51:749 73 sec: 6530000 operations; 92000 current ops/sec; est completion in 6 minutes [INSERT: Count=92000, Max=239487, Min=28880, Avg=46305.91, 90=62559, 99=239487, 99.9=239487, 99.99=239487] 
+2022-11-25 15:05:52:749 74 sec: 6621000 operations; 91000 current ops/sec; est completion in 6 minutes [INSERT: Count=91000, Max=236799, Min=28592, Avg=45006.51, 90=57567, 99=236799, 99.9=236799, 99.99=236799] 
+2022-11-25 15:05:53:749 75 sec: 6711000 operations; 90000 current ops/sec; est completion in 6 minutes [INSERT: Count=90000, Max=247295, Min=29456, Avg=46619.56, 90=73023, 99=247295, 99.9=247295, 99.99=247295] 
+2022-11-25 15:05:54:749 76 sec: 6800000 operations; 89000 current ops/sec; est completion in 6 minutes [INSERT: Count=89000, Max=233855, Min=30576, Avg=53258.88, 90=74751, 99=233855, 99.9=233855, 99.99=233855] 
+2022-11-25 15:05:55:749 77 sec: 6890000 operations; 90000 current ops/sec; est completion in 6 minutes [INSERT: Count=90000, Max=75519, Min=29184, Avg=42218.13, 90=59423, 99=75519, 99.9=75519, 99.99=75519] 
+2022-11-25 15:05:56:749 78 sec: 6979000 operations; 89000 current ops/sec; est completion in 6 minutes [INSERT: Count=89000, Max=219007, Min=29344, Avg=40549.3, 90=53983, 99=219007, 99.9=219007, 99.99=219007] 
+2022-11-25 15:05:57:749 79 sec: 7070000 operations; 91000 current ops/sec; est completion in 6 minutes [INSERT: Count=91000, Max=231295, Min=28816, Avg=50029.8, 90=65663, 99=231295, 99.9=231295, 99.99=231295] 
+2022-11-25 15:05:58:749 80 sec: 7156000 operations; 86000 current ops/sec; est completion in 6 minutes [INSERT: Count=86000, Max=258687, Min=29632, Avg=79028.65, 90=145407, 99=258687, 99.9=258687, 99.99=258687] 
+2022-11-25 15:05:59:749 81 sec: 7247000 operations; 91000 current ops/sec; est completion in 6 minutes [INSERT: Count=91000, Max=233343, Min=31504, Avg=65324.48, 90=104383, 99=233343, 99.9=233343, 99.99=233343] 
+2022-11-25 15:06:00:749 82 sec: 7340000 operations; 93000 current ops/sec; est completion in 6 minutes [INSERT: Count=93000, Max=260607, Min=30624, Avg=69891.61, 90=118335, 99=260607, 99.9=260607, 99.99=260607] 
+2022-11-25 15:06:01:749 83 sec: 7431000 operations; 91000 current ops/sec; est completion in 6 minutes [INSERT: Count=91000, Max=249471, Min=30720, Avg=57069.19, 90=81087, 99=249471, 99.9=249471, 99.99=249471] 
+2022-11-25 15:06:02:749 84 sec: 7519000 operations; 88000 current ops/sec; est completion in 6 minutes [INSERT: Count=88000, Max=249087, Min=29056, Avg=50387.18, 90=70591, 99=249087, 99.9=249087, 99.99=249087] 
+2022-11-25 15:06:03:749 85 sec: 7610000 operations; 91000 current ops/sec; est completion in 6 minutes [INSERT: Count=91000, Max=220031, Min=31472, Avg=55123.25, 90=87743, 99=220031, 99.9=220031, 99.99=220031] 
+2022-11-25 15:06:04:749 86 sec: 7699000 operations; 89000 current ops/sec; est completion in 6 minutes [INSERT: Count=89000, Max=223999, Min=30560, Avg=50955.87, 90=68607, 99=223999, 99.9=223999, 99.99=223999] 
+2022-11-25 15:06:05:749 87 sec: 7789000 operations; 90000 current ops/sec; est completion in 6 minutes [INSERT: Count=90000, Max=212863, Min=30352, Avg=50457.16, 90=71487, 99=212863, 99.9=212863, 99.99=212863] 
+2022-11-25 15:06:06:749 88 sec: 7880000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=222847, Min=29760, Avg=50459.6, 90=74943, 99=222847, 99.9=222847, 99.99=222847] 
+2022-11-25 15:06:07:749 89 sec: 7969000 operations; 89000 current ops/sec; est completion in 5 minutes [INSERT: Count=89000, Max=227967, Min=28768, Avg=51358.83, 90=68287, 99=227967, 99.9=227967, 99.99=227967] 
+2022-11-25 15:06:08:749 90 sec: 8059000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=259455, Min=30160, Avg=64166.67, 90=103487, 99=259455, 99.9=259455, 99.99=259455] 
+2022-11-25 15:06:09:749 91 sec: 8148000 operations; 89000 current ops/sec; est completion in 5 minutes [INSERT: Count=89000, Max=293375, Min=29728, Avg=71557.75, 90=153471, 99=293375, 99.9=293375, 99.99=293375] 
+2022-11-25 15:06:10:749 92 sec: 8239000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=209535, Min=30768, Avg=50383.3, 90=72639, 99=209535, 99.9=209535, 99.99=209535] 
+2022-11-25 15:06:11:749 93 sec: 8330000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=225919, Min=29824, Avg=49970.37, 90=67775, 99=225919, 99.9=225919, 99.99=225919] 
+2022-11-25 15:06:12:749 94 sec: 8417000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87000, Max=267519, Min=29936, Avg=53942.8, 90=68287, 99=267519, 99.9=267519, 99.99=267519] 
+2022-11-25 15:06:13:749 95 sec: 8510000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=93000, Max=239871, Min=31024, Avg=55413.68, 90=73023, 99=239871, 99.9=239871, 99.99=239871] 
+2022-11-25 15:06:14:749 96 sec: 8598000 operations; 88000 current ops/sec; est completion in 5 minutes [INSERT: Count=88000, Max=246399, Min=30464, Avg=68933, 90=128063, 99=246399, 99.9=246399, 99.99=246399] 
+2022-11-25 15:06:15:749 97 sec: 8688000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=213119, Min=29632, Avg=50275.82, 90=77887, 99=213119, 99.9=213119, 99.99=213119] 
+2022-11-25 15:06:16:749 98 sec: 8776000 operations; 88000 current ops/sec; est completion in 5 minutes [INSERT: Count=88000, Max=230399, Min=28496, Avg=44678.36, 90=61471, 99=230399, 99.9=230399, 99.99=230399] 
+2022-11-25 15:06:17:749 99 sec: 8866000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=254079, Min=30960, Avg=62272, 90=103295, 99=254079, 99.9=254079, 99.99=254079] 
+2022-11-25 15:06:18:749 100 sec: 8958000 operations; 92000 current ops/sec; est completion in 5 minutes [INSERT: Count=92000, Max=303615, Min=27824, Avg=77885.57, 90=148095, 99=303615, 99.9=303615, 99.99=303615] 
+2022-11-25 15:06:19:749 101 sec: 9048000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=291327, Min=31888, Avg=68775.11, 90=115711, 99=291327, 99.9=291327, 99.99=291327] 
+2022-11-25 15:06:20:749 102 sec: 9139000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=283135, Min=33056, Avg=83793.76, 90=144255, 99=283135, 99.9=283135, 99.99=283135] 
+2022-11-25 15:06:21:749 103 sec: 9227000 operations; 88000 current ops/sec; est completion in 5 minutes [INSERT: Count=88000, Max=235263, Min=30400, Avg=62259.36, 90=102719, 99=235263, 99.9=235263, 99.99=235263] 
+2022-11-25 15:06:22:749 104 sec: 9316000 operations; 89000 current ops/sec; est completion in 5 minutes [INSERT: Count=89000, Max=223615, Min=29744, Avg=47630.92, 90=67839, 99=223615, 99.9=223615, 99.99=223615] 
+2022-11-25 15:06:23:749 105 sec: 9412000 operations; 96000 current ops/sec; est completion in 5 minutes [INSERT: Count=96000, Max=241151, Min=29600, Avg=57446.67, 90=84031, 99=241151, 99.9=241151, 99.99=241151] 
+2022-11-25 15:06:24:749 106 sec: 9497000 operations; 84915.08 current ops/sec; est completion in 5 minutes [INSERT: Count=85000, Max=227839, Min=28912, Avg=57669.93, 90=87679, 99=227839, 99.9=227839, 99.99=227839] 
+2022-11-25 15:06:25:749 107 sec: 9589000 operations; 92092.09 current ops/sec; est completion in 5 minutes [INSERT: Count=92000, Max=285695, Min=29744, Avg=78299.48, 90=204287, 99=285695, 99.9=285695, 99.99=285695] 
+2022-11-25 15:06:26:749 108 sec: 9681000 operations; 92000 current ops/sec; est completion in 5 minutes [INSERT: Count=92000, Max=280063, Min=30048, Avg=67735.22, 90=116479, 99=280063, 99.9=280063, 99.99=280063] 
+2022-11-25 15:06:27:749 109 sec: 9768000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87134, Max=249855, Min=28640, Avg=58753.33, 90=82943, 99=249855, 99.9=249855, 99.99=249855] 
+2022-11-25 15:06:28:749 110 sec: 9861000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=92866, Max=249215, Min=28224, Avg=65430.83, 90=111615, 99=249215, 99.9=249215, 99.99=249215] 
+2022-11-25 15:06:29:749 111 sec: 9948000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87000, Max=299775, Min=30816, Avg=76866.02, 90=159615, 99=299775, 99.9=299775, 99.99=299775] 
+2022-11-25 15:06:30:749 112 sec: 10038000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=236415, Min=30496, Avg=55987.73, 90=87871, 99=236415, 99.9=236415, 99.99=236415] 
+2022-11-25 15:06:31:749 113 sec: 10131000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=93000, Max=231935, Min=29920, Avg=61548.47, 90=92735, 99=231935, 99.9=231935, 99.99=231935] 
+2022-11-25 15:06:32:749 114 sec: 10221000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=240255, Min=28560, Avg=54748.44, 90=84159, 99=240255, 99.9=240255, 99.99=240255] 
+2022-11-25 15:06:33:749 115 sec: 10307000 operations; 86000 current ops/sec; est completion in 5 minutes [INSERT: Count=86000, Max=139903, Min=30128, Avg=47458.79, 90=77119, 99=139903, 99.9=139903, 99.99=139903] 
+2022-11-25 15:06:34:749 116 sec: 10400000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=93000, Max=259583, Min=30672, Avg=60948.82, 90=92287, 99=259583, 99.9=259583, 99.99=259583] 
+2022-11-25 15:06:35:749 117 sec: 10490000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=228223, Min=30912, Avg=55418.49, 90=90623, 99=228223, 99.9=228223, 99.99=228223] 
+2022-11-25 15:06:36:749 118 sec: 10576000 operations; 86000 current ops/sec; est completion in 5 minutes [INSERT: Count=86000, Max=293375, Min=31200, Avg=67603.44, 90=138751, 99=293375, 99.9=293375, 99.99=293375] 
+2022-11-25 15:06:37:749 119 sec: 10670000 operations; 94000 current ops/sec; est completion in 5 minutes [INSERT: Count=94000, Max=331775, Min=34336, Avg=83774.98, 90=163199, 99=331775, 99.9=331775, 99.99=331775] 
+2022-11-25 15:06:38:749 120 sec: 10755000 operations; 85000 current ops/sec; est completion in 5 minutes [INSERT: Count=85000, Max=239103, Min=32128, Avg=62487.34, 90=107967, 99=239103, 99.9=239103, 99.99=239103] 
+2022-11-25 15:06:39:749 121 sec: 10847000 operations; 92000 current ops/sec; est completion in 5 minutes [INSERT: Count=92000, Max=292095, Min=27536, Avg=66308.78, 90=118399, 99=292095, 99.9=292095, 99.99=292095] 
+2022-11-25 15:06:40:749 122 sec: 10940000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=93000, Max=291327, Min=31536, Avg=76680.43, 90=132479, 99=291327, 99.9=291327, 99.99=291327] 
+2022-11-25 15:06:41:749 123 sec: 11026000 operations; 86000 current ops/sec; est completion in 5 minutes [INSERT: Count=86000, Max=254079, Min=31776, Avg=84097.02, 90=139263, 99=254079, 99.9=254079, 99.99=254079] 
+2022-11-25 15:06:42:749 124 sec: 11120000 operations; 94000 current ops/sec; est completion in 5 minutes [INSERT: Count=94000, Max=266751, Min=30704, Avg=80881.45, 90=205567, 99=266751, 99.9=266751, 99.99=266751] 
+2022-11-25 15:06:43:749 125 sec: 11206000 operations; 86000 current ops/sec; est completion in 5 minutes [INSERT: Count=86000, Max=249471, Min=32112, Avg=70221.67, 90=116095, 99=249471, 99.9=249471, 99.99=249471] 
+2022-11-25 15:06:44:749 126 sec: 11294000 operations; 88000 current ops/sec; est completion in 5 minutes [INSERT: Count=88000, Max=254847, Min=29920, Avg=66383.64, 90=112511, 99=254847, 99.9=254847, 99.99=254847] 
+2022-11-25 15:06:45:749 127 sec: 11389000 operations; 95000 current ops/sec; est completion in 5 minutes [INSERT: Count=95000, Max=269311, Min=30000, Avg=69573.39, 90=111551, 99=269311, 99.9=269311, 99.99=269311] 
+2022-11-25 15:06:46:749 128 sec: 11476000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87000, Max=315135, Min=29728, Avg=76020.69, 90=156799, 99=315135, 99.9=315135, 99.99=315135] 
+2022-11-25 15:06:47:749 129 sec: 11566000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=257407, Min=31136, Avg=79208.09, 90=136447, 99=257407, 99.9=257407, 99.99=257407] 
+2022-11-25 15:06:48:749 130 sec: 11660000 operations; 94000 current ops/sec; est completion in 5 minutes [INSERT: Count=94000, Max=279551, Min=30928, Avg=79942.98, 90=139775, 99=279551, 99.9=279551, 99.99=279551] 
+2022-11-25 15:06:49:749 131 sec: 11745000 operations; 85000 current ops/sec; est completion in 5 minutes [INSERT: Count=85000, Max=271359, Min=28592, Avg=95529.22, 90=186495, 99=271359, 99.9=271359, 99.99=271359] 
+2022-11-25 15:06:50:749 132 sec: 11836000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=247039, Min=31744, Avg=72541.8, 90=123391, 99=247039, 99.9=247039, 99.99=247039] 
+2022-11-25 15:06:51:749 133 sec: 11932000 operations; 96000 current ops/sec; est completion in 5 minutes [INSERT: Count=96000, Max=254719, Min=30048, Avg=70882.83, 90=202367, 99=254719, 99.9=254719, 99.99=254719] 
+2022-11-25 15:06:52:749 134 sec: 12016000 operations; 84000 current ops/sec; est completion in 5 minutes [INSERT: Count=84000, Max=257151, Min=31712, Avg=71550.19, 90=129087, 99=257151, 99.9=257151, 99.99=257151] 
+2022-11-25 15:06:53:749 135 sec: 12108000 operations; 92000 current ops/sec; est completion in 5 minutes [INSERT: Count=92000, Max=228735, Min=30928, Avg=67243.48, 90=106751, 99=228735, 99.9=228735, 99.99=228735] 
+2022-11-25 15:06:54:749 136 sec: 12196000 operations; 88000 current ops/sec; est completion in 5 minutes [INSERT: Count=88000, Max=334591, Min=31616, Avg=84217.45, 90=197503, 99=334591, 99.9=334591, 99.99=334591] 
+2022-11-25 15:06:55:749 137 sec: 12285000 operations; 89000 current ops/sec; est completion in 5 minutes [INSERT: Count=89000, Max=284159, Min=30768, Avg=84279.64, 90=177791, 99=284159, 99.9=284159, 99.99=284159] 
+2022-11-25 15:06:56:749 138 sec: 12380000 operations; 95000 current ops/sec; est completion in 5 minutes [INSERT: Count=95000, Max=259967, Min=28944, Avg=62662.57, 90=99711, 99=259967, 99.9=259967, 99.99=259967] 
+2022-11-25 15:06:57:749 139 sec: 12469000 operations; 89000 current ops/sec; est completion in 5 minutes [INSERT: Count=89000, Max=264959, Min=29648, Avg=73456.81, 90=152703, 99=264959, 99.9=264959, 99.99=264959] 
+2022-11-25 15:06:58:749 140 sec: 12559000 operations; 90000 current ops/sec; est completion in 5 minutes [INSERT: Count=90000, Max=287999, Min=29616, Avg=63420.44, 90=94783, 99=287999, 99.9=287999, 99.99=287999] 
+2022-11-25 15:06:59:749 141 sec: 12646000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87000, Max=203903, Min=30464, Avg=61282.11, 90=103807, 99=203903, 99.9=203903, 99.99=203903] 
+2022-11-25 15:07:00:749 142 sec: 12739000 operations; 93000 current ops/sec; est completion in 5 minutes [INSERT: Count=93000, Max=245503, Min=30032, Avg=73414.8, 90=131455, 99=245503, 99.9=245503, 99.99=245503] 
+2022-11-25 15:07:01:749 143 sec: 12826000 operations; 87000 current ops/sec; est completion in 5 minutes [INSERT: Count=87000, Max=237695, Min=28352, Avg=67957.33, 90=113471, 99=237695, 99.9=237695, 99.99=237695] 
+2022-11-25 15:07:02:749 144 sec: 12912000 operations; 86000 current ops/sec; est completion in 5 minutes [INSERT: Count=86000, Max=260863, Min=31632, Avg=79645.67, 90=135295, 99=260863, 99.9=260863, 99.99=260863] 
+2022-11-25 15:07:03:749 145 sec: 13009000 operations; 97000 current ops/sec; est completion in 5 minutes [INSERT: Count=97000, Max=259967, Min=30672, Avg=72820.78, 90=137599, 99=259967, 99.9=259967, 99.99=259967] 
+2022-11-25 15:07:04:749 146 sec: 13100000 operations; 91000 current ops/sec; est completion in 5 minutes [INSERT: Count=91000, Max=291071, Min=31216, Avg=67866.11, 90=115519, 99=291071, 99.9=291071, 99.99=291071] 
+2022-11-25 15:07:05:749 147 sec: 13188000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=245375, Min=30000, Avg=62485.73, 90=98239, 99=245375, 99.9=245375, 99.99=245375] 
+2022-11-25 15:07:06:748 148 sec: 13279000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=248959, Min=28496, Avg=72125.1, 90=111999, 99=248959, 99.9=248959, 99.99=248959] 
+2022-11-25 15:07:07:749 149 sec: 13369000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=238207, Min=30528, Avg=65442.93, 90=100543, 99=238207, 99.9=238207, 99.99=238207] 
+2022-11-25 15:07:08:777 150 sec: 13459000 operations; 87463.56 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=271871, Min=30688, Avg=73961.51, 90=128063, 99=271871, 99.9=271871, 99.99=271871] 
+2022-11-25 15:07:09:749 151 sec: 13550000 operations; 93717.82 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=273407, Min=31184, Avg=65514.02, 90=92991, 99=273407, 99.9=273407, 99.99=273407] 
+2022-11-25 15:07:10:748 152 sec: 13640000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=220799, Min=28768, Avg=51788.36, 90=69759, 99=220799, 99.9=220799, 99.99=220799] 
+2022-11-25 15:07:11:749 153 sec: 13729000 operations; 89000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=209919, Min=30096, Avg=56690.7, 90=97023, 99=209919, 99.9=209919, 99.99=209919] 
+2022-11-25 15:07:12:749 154 sec: 13818000 operations; 89000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=262655, Min=28688, Avg=61122.61, 90=90367, 99=262655, 99.9=262655, 99.99=262655] 
+2022-11-25 15:07:13:749 155 sec: 13910000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=234879, Min=30864, Avg=68185.39, 90=92415, 99=234879, 99.9=234879, 99.99=234879] 
+2022-11-25 15:07:14:749 156 sec: 13998000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=265727, Min=30880, Avg=84787.27, 90=174207, 99=265727, 99.9=265727, 99.99=265727] 
+2022-11-25 15:07:15:749 157 sec: 14088000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=366591, Min=29856, Avg=101107.29, 90=220799, 99=366591, 99.9=366591, 99.99=366591] 
+2022-11-25 15:07:16:749 158 sec: 14176000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=272639, Min=30832, Avg=75933.55, 90=149119, 99=272639, 99.9=272639, 99.99=272639] 
+2022-11-25 15:07:17:749 159 sec: 14266000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=293887, Min=31552, Avg=76123.56, 90=119231, 99=293887, 99.9=293887, 99.99=293887] 
+2022-11-25 15:07:18:749 160 sec: 14357000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=280831, Min=31600, Avg=77653.54, 90=131583, 99=280831, 99.9=280831, 99.99=280831] 
+2022-11-25 15:07:19:749 161 sec: 14447000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=302079, Min=30176, Avg=70623.91, 90=120063, 99=302079, 99.9=302079, 99.99=302079] 
+2022-11-25 15:07:20:749 162 sec: 14531000 operations; 84000 current ops/sec; est completion in 4 minutes [INSERT: Count=84000, Max=298495, Min=31120, Avg=99308.38, 90=208767, 99=298495, 99.9=298495, 99.99=298495] 
+2022-11-25 15:07:21:749 163 sec: 14627000 operations; 96000 current ops/sec; est completion in 4 minutes [INSERT: Count=96000, Max=270591, Min=31008, Avg=107275.92, 90=211583, 99=270591, 99.9=270591, 99.99=270591] 
+2022-11-25 15:07:22:749 164 sec: 14714000 operations; 87000 current ops/sec; est completion in 4 minutes [INSERT: Count=87000, Max=266239, Min=35296, Avg=105428.23, 90=205695, 99=266239, 99.9=266239, 99.99=266239] 
+2022-11-25 15:07:23:748 165 sec: 14808000 operations; 94000 current ops/sec; est completion in 4 minutes [INSERT: Count=94000, Max=294399, Min=30784, Avg=87778.81, 90=203519, 99=294399, 99.9=294399, 99.99=294399] 
+2022-11-25 15:07:24:749 166 sec: 14895000 operations; 87000 current ops/sec; est completion in 4 minutes [INSERT: Count=87000, Max=298495, Min=33472, Avg=107233.66, 90=185215, 99=298495, 99.9=298495, 99.99=298495] 
+2022-11-25 15:07:25:749 167 sec: 14987000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=250879, Min=29984, Avg=87090.96, 90=150015, 99=250879, 99.9=250879, 99.99=250879] 
+2022-11-25 15:07:26:749 168 sec: 15079000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=253951, Min=30624, Avg=73341.22, 90=137599, 99=253951, 99.9=253951, 99.99=253951] 
+2022-11-25 15:07:27:749 169 sec: 15167000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=229759, Min=31392, Avg=67461.18, 90=114367, 99=229759, 99.9=229759, 99.99=229759] 
+2022-11-25 15:07:28:749 170 sec: 15258000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=292607, Min=30992, Avg=73414.59, 90=103359, 99=292607, 99.9=292607, 99.99=292607] 
+2022-11-25 15:07:29:749 171 sec: 15349000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=227839, Min=30448, Avg=66340.13, 90=99199, 99=227839, 99.9=227839, 99.99=227839] 
+2022-11-25 15:07:30:749 172 sec: 15441000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=229503, Min=30304, Avg=60061.13, 90=90303, 99=229503, 99.9=229503, 99.99=229503] 
+2022-11-25 15:07:31:749 173 sec: 15527000 operations; 86000 current ops/sec; est completion in 4 minutes [INSERT: Count=86000, Max=323327, Min=31088, Avg=77318.23, 90=118655, 99=323327, 99.9=323327, 99.99=323327] 
+2022-11-25 15:07:32:749 174 sec: 15615000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=306175, Min=31488, Avg=76784.73, 90=158719, 99=306175, 99.9=306175, 99.99=306175] 
+2022-11-25 15:07:33:749 175 sec: 15705000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=252671, Min=30624, Avg=80708.53, 90=131199, 99=252671, 99.9=252671, 99.99=252671] 
+2022-11-25 15:07:34:749 176 sec: 15796000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=319487, Min=37216, Avg=103881.14, 90=215423, 99=319487, 99.9=319487, 99.99=319487] 
+2022-11-25 15:07:35:749 177 sec: 15886000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=311039, Min=31856, Avg=86878.22, 90=154111, 99=311039, 99.9=311039, 99.99=311039] 
+2022-11-25 15:07:36:749 178 sec: 15973000 operations; 87000 current ops/sec; est completion in 4 minutes [INSERT: Count=87000, Max=252287, Min=31088, Avg=74468.6, 90=111807, 99=252287, 99.9=252287, 99.99=252287] 
+2022-11-25 15:07:37:749 179 sec: 16067000 operations; 94000 current ops/sec; est completion in 4 minutes [INSERT: Count=94000, Max=296703, Min=29520, Avg=76646.64, 90=146815, 99=296703, 99.9=296703, 99.99=296703] 
+2022-11-25 15:07:38:749 180 sec: 16157000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=271871, Min=31600, Avg=78559.02, 90=137471, 99=271871, 99.9=271871, 99.99=271871] 
+2022-11-25 15:07:39:749 181 sec: 16248000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=91000, Max=226943, Min=29504, Avg=61795.78, 90=92543, 99=226943, 99.9=226943, 99.99=226943] 
+2022-11-25 15:07:40:749 182 sec: 16336000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=298239, Min=31808, Avg=84017.09, 90=151551, 99=298239, 99.9=298239, 99.99=298239] 
+2022-11-25 15:07:41:749 183 sec: 16424000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=88000, Max=350463, Min=31344, Avg=101146.64, 90=212607, 99=350463, 99.9=350463, 99.99=350463] 
+2022-11-25 15:07:42:749 184 sec: 16517000 operations; 93000 current ops/sec; est completion in 4 minutes [INSERT: Count=93000, Max=318975, Min=28576, Avg=83972.73, 90=141183, 99=318975, 99.9=318975, 99.99=318975] 
+2022-11-25 15:07:43:749 185 sec: 16610000 operations; 93000 current ops/sec; est completion in 4 minutes [INSERT: Count=93000, Max=306687, Min=30592, Avg=93383.31, 90=207487, 99=306687, 99.9=306687, 99.99=306687] 
+2022-11-25 15:07:44:749 186 sec: 16696000 operations; 86000 current ops/sec; est completion in 4 minutes [INSERT: Count=86000, Max=272127, Min=30192, Avg=78758.33, 90=138111, 99=272127, 99.9=272127, 99.99=272127] 
+2022-11-25 15:07:45:749 187 sec: 16788000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=302591, Min=33024, Avg=75649.39, 90=129343, 99=302591, 99.9=302591, 99.99=302591] 
+2022-11-25 15:07:46:749 188 sec: 16878000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=284927, Min=28816, Avg=78374.67, 90=115007, 99=284927, 99.9=284927, 99.99=284927] 
+2022-11-25 15:07:47:749 189 sec: 16964000 operations; 86000 current ops/sec; est completion in 4 minutes [INSERT: Count=86000, Max=244479, Min=29696, Avg=63502.6, 90=95423, 99=244479, 99.9=244479, 99.99=244479] 
+2022-11-25 15:07:48:749 190 sec: 17057000 operations; 93000 current ops/sec; est completion in 4 minutes [INSERT: Count=93000, Max=424959, Min=28224, Avg=109579.87, 90=239231, 99=424959, 99.9=424959, 99.99=424959] 
+2022-11-25 15:07:49:749 191 sec: 17150000 operations; 93000 current ops/sec; est completion in 4 minutes [INSERT: Count=93000, Max=262911, Min=30112, Avg=81475.78, 90=154495, 99=262911, 99.9=262911, 99.99=262911] 
+2022-11-25 15:07:50:749 192 sec: 17238000 operations; 88000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=236671, Min=28544, Avg=72562.25, 90=109503, 99=236671, 99.9=236671, 99.99=236671] 
+2022-11-25 15:07:51:749 193 sec: 17329000 operations; 91000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=260991, Min=32192, Avg=78637.69, 90=161023, 99=260991, 99.9=260991, 99.99=260991] 
+2022-11-25 15:07:52:749 194 sec: 17418000 operations; 89000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=281343, Min=29888, Avg=79437.66, 90=151423, 99=281343, 99.9=281343, 99.99=281343] 
+2022-11-25 15:07:53:749 195 sec: 17504000 operations; 86000 current ops/sec; est completion in 4 minutes [INSERT: Count=86000, Max=311551, Min=28976, Avg=84694.33, 90=147455, 99=311551, 99.9=311551, 99.99=311551] 
+2022-11-25 15:07:54:749 196 sec: 17591000 operations; 87000 current ops/sec; est completion in 4 minutes [INSERT: Count=87000, Max=319743, Min=34688, Avg=116885.52, 90=242687, 99=319743, 99.9=319743, 99.99=319743] 
+2022-11-25 15:07:55:749 197 sec: 17669000 operations; 78000 current ops/sec; est completion in 4 minutes [INSERT: Count=78000, Max=749567, Min=34752, Avg=160601.64, 90=288767, 99=749567, 99.9=749567, 99.99=749567] 
+2022-11-25 15:07:56:749 198 sec: 17762000 operations; 93000 current ops/sec; est completion in 4 minutes [INSERT: Count=93000, Max=892927, Min=35776, Avg=282387.96, 90=743423, 99=892927, 99.9=892927, 99.99=892927] 
+2022-11-25 15:07:57:749 199 sec: 17865000 operations; 103000 current ops/sec; est completion in 4 minutes [INSERT: Count=103000, Max=669695, Min=35264, Avg=187721.17, 90=505343, 99=653311, 99.9=669695, 99.99=669695] 
+2022-11-25 15:07:58:749 200 sec: 17955000 operations; 90000 current ops/sec; est completion in 4 minutes [INSERT: Count=90000, Max=265983, Min=31920, Avg=87113.69, 90=136703, 99=265983, 99.9=265983, 99.99=265983] 
+2022-11-25 15:07:59:749 201 sec: 18044000 operations; 89000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=312575, Min=34208, Avg=115017.17, 90=228479, 99=312575, 99.9=312575, 99.99=312575] 
+2022-11-25 15:08:00:749 202 sec: 18138000 operations; 94000 current ops/sec; est completion in 4 minutes [INSERT: Count=94000, Max=259455, Min=30784, Avg=92894.72, 90=209023, 99=259455, 99.9=259455, 99.99=259455] 
+2022-11-25 15:08:01:749 203 sec: 18227000 operations; 89000 current ops/sec; est completion in 4 minutes [INSERT: Count=89000, Max=327167, Min=32832, Avg=87145.89, 90=167807, 99=327167, 99.9=327167, 99.99=327167] 
+2022-11-25 15:08:02:749 204 sec: 18319000 operations; 92000 current ops/sec; est completion in 4 minutes [INSERT: Count=92000, Max=352255, Min=31376, Avg=79750.7, 90=140799, 99=352255, 99.9=352255, 99.99=352255] 
+2022-11-25 15:08:03:749 205 sec: 18400000 operations; 81000 current ops/sec; est completion in 4 minutes [INSERT: Count=81000, Max=516351, Min=32768, Avg=124227.75, 90=342527, 99=516351, 99.9=516351, 99.99=516351] 
+2022-11-25 15:08:04:748 206 sec: 18486000 operations; 86000 current ops/sec; est completion in 4 minutes [INSERT: Count=86000, Max=575487, Min=30672, Avg=102744.56, 90=240127, 99=575487, 99.9=575487, 99.99=575487] 
+2022-11-25 15:08:05:749 207 sec: 18585000 operations; 99000 current ops/sec; est completion in 3 minutes [INSERT: Count=99000, Max=872447, Min=30128, Avg=177615.84, 90=554495, 99=872447, 99.9=872447, 99.99=872447] 
+2022-11-25 15:08:06:749 208 sec: 18676000 operations; 91000 current ops/sec; est completion in 3 minutes [INSERT: Count=91000, Max=315647, Min=30128, Avg=95985.14, 90=226943, 99=315647, 99.9=315647, 99.99=315647] 
+2022-11-25 15:08:07:749 209 sec: 18756000 operations; 80000 current ops/sec; est completion in 3 minutes [INSERT: Count=80000, Max=727039, Min=30688, Avg=147321.5, 90=592895, 99=727039, 99.9=727039, 99.99=727039] 
+2022-11-25 15:08:08:749 210 sec: 18857000 operations; 101000 current ops/sec; est completion in 3 minutes [INSERT: Count=101000, Max=671231, Min=30256, Avg=137760.79, 90=414975, 99=668671, 99.9=671231, 99.99=671231] 
+2022-11-25 15:08:09:749 211 sec: 18947000 operations; 90000 current ops/sec; est completion in 3 minutes [INSERT: Count=90000, Max=366591, Min=29248, Avg=99888.18, 90=219263, 99=366591, 99.9=366591, 99.99=366591] 
+2022-11-25 15:08:10:749 212 sec: 19024000 operations; 77000 current ops/sec; est completion in 3 minutes [INSERT: Count=77000, Max=594431, Min=31104, Avg=101614.86, 90=207615, 99=594431, 99.9=594431, 99.99=594431] 
+2022-11-25 15:08:11:749 213 sec: 19105000 operations; 81000 current ops/sec; est completion in 3 minutes [INSERT: Count=81000, Max=1179647, Min=30448, Avg=255939.65, 90=900607, 99=1179647, 99.9=1179647, 99.99=1179647] 
+2022-11-25 15:08:12:749 214 sec: 19200000 operations; 95000 current ops/sec; est completion in 3 minutes [INSERT: Count=95000, Max=900607, Min=32048, Avg=259476.8, 90=652799, 99=900607, 99.9=900607, 99.99=900607] 
+2022-11-25 15:08:13:749 215 sec: 19285000 operations; 85000 current ops/sec; est completion in 3 minutes [INSERT: Count=85000, Max=1297407, Min=32384, Avg=330451.67, 90=1089535, 99=1297407, 99.9=1297407, 99.99=1297407] 
+2022-11-25 15:08:14:749 216 sec: 19391000 operations; 106000 current ops/sec; est completion in 3 minutes [INSERT: Count=106000, Max=1253375, Min=29568, Avg=291277.81, 90=754687, 99=1090559, 99.9=1253375, 99.99=1253375] 
+2022-11-25 15:08:15:749 217 sec: 19479000 operations; 88000 current ops/sec; est completion in 3 minutes [INSERT: Count=88000, Max=689151, Min=31456, Avg=160502.36, 90=463359, 99=689151, 99.9=689151, 99.99=689151] 
+2022-11-25 15:08:16:749 218 sec: 19573000 operations; 94000 current ops/sec; est completion in 3 minutes [INSERT: Count=94000, Max=434687, Min=29520, Avg=87424.77, 90=230911, 99=434687, 99.9=434687, 99.99=434687] 
+2022-11-25 15:08:17:749 219 sec: 19669000 operations; 96000 current ops/sec; est completion in 3 minutes [INSERT: Count=96000, Max=286207, Min=32080, Avg=80865.5, 90=167551, 99=286207, 99.9=286207, 99.99=286207] 
+2022-11-25 15:08:18:758 220 sec: 19744000 operations; 74257.43 current ops/sec; est completion in 3 minutes [INSERT: Count=75000, Max=628735, Min=30336, Avg=120653.76, 90=312319, 99=628735, 99.9=628735, 99.99=628735] 
+2022-11-25 15:08:19:749 221 sec: 19815000 operations; 71717.17 current ops/sec; est completion in 3 minutes [INSERT: Count=71000, Max=1333247, Min=33632, Avg=233280.45, 90=797695, 99=1333247, 99.9=1333247, 99.99=1333247] 
+2022-11-25 15:08:20:749 222 sec: 19912000 operations; 97000 current ops/sec; est completion in 3 minutes [INSERT: Count=97000, Max=1263615, Min=31312, Avg=377194.97, 90=909823, 99=1263615, 99.9=1263615, 99.99=1263615] 
+2022-11-25 15:08:21:749 223 sec: 19987000 operations; 75000 current ops/sec; est completion in 3 minutes [INSERT: Count=75000, Max=1277951, Min=29568, Avg=297531.63, 90=1070079, 99=1277951, 99.9=1277951, 99.99=1277951] 
+2022-11-25 15:08:22:749 224 sec: 20069000 operations; 82000 current ops/sec; est completion in 3 minutes [INSERT: Count=82000, Max=1520639, Min=32400, Avg=678446.54, 90=1313791, 99=1520639, 99.9=1520639, 99.99=1520639] 
+2022-11-25 15:08:23:749 225 sec: 20152000 operations; 83000 current ops/sec; est completion in 3 minutes [INSERT: Count=83000, Max=1580031, Min=37920, Avg=648470.55, 90=1415167, 99=1580031, 99.9=1580031, 99.99=1580031] 
+2022-11-25 15:08:24:749 226 sec: 20281000 operations; 129000 current ops/sec; est completion in 3 minutes [INSERT: Count=129000, Max=1565695, Min=42240, Avg=537055.75, 90=1144831, 99=1460223, 99.9=1565695, 99.99=1565695] 
+2022-11-25 15:08:25:749 227 sec: 20390000 operations; 109000 current ops/sec; est completion in 3 minutes [INSERT: Count=109000, Max=711679, Min=32320, Avg=129708.92, 90=271359, 99=693247, 99.9=711679, 99.99=711679] 
+2022-11-25 15:08:26:749 228 sec: 20465000 operations; 75000 current ops/sec; est completion in 3 minutes [INSERT: Count=75000, Max=512255, Min=29504, Avg=93158.19, 90=234111, 99=512255, 99.9=512255, 99.99=512255] 
+2022-11-25 15:08:27:749 229 sec: 20543000 operations; 78000 current ops/sec; est completion in 3 minutes [INSERT: Count=78000, Max=1160191, Min=30544, Avg=201170.67, 90=829951, 99=1160191, 99.9=1160191, 99.99=1160191] 
+2022-11-25 15:08:28:749 230 sec: 20610000 operations; 67000 current ops/sec; est completion in 3 minutes [INSERT: Count=67000, Max=1760255, Min=30512, Avg=351958.57, 90=1347583, 99=1760255, 99.9=1760255, 99.99=1760255] 
+2022-11-25 15:08:29:749 231 sec: 20687000 operations; 77000 current ops/sec; est completion in 3 minutes [INSERT: Count=77000, Max=1913855, Min=33632, Avg=768478.55, 90=1682431, 99=1913855, 99.9=1913855, 99.99=1913855] 
+2022-11-25 15:08:30:749 232 sec: 20761000 operations; 74000 current ops/sec; est completion in 3 minutes [INSERT: Count=74000, Max=1696767, Min=289792, Avg=865736.65, 90=1344511, 99=1696767, 99.9=1696767, 99.99=1696767] 
+2022-11-25 15:08:31:749 233 sec: 20837000 operations; 76000 current ops/sec; est completion in 3 minutes [INSERT: Count=76000, Max=2049023, Min=29376, Avg=937109.79, 90=1841151, 99=2049023, 99.9=2049023, 99.99=2049023] 
+2022-11-25 15:08:32:749 234 sec: 20936000 operations; 99000 current ops/sec; est completion in 3 minutes [INSERT: Count=99000, Max=1851391, Min=38144, Avg=1049103.52, 90=1616895, 99=1851391, 99.9=1851391, 99.99=1851391] 
+2022-11-25 15:08:33:749 235 sec: 21069000 operations; 133000 current ops/sec; est completion in 3 minutes [INSERT: Count=133000, Max=1883135, Min=32528, Avg=813880.12, 90=1498111, 99=1871871, 99.9=1883135, 99.99=1883135] 
+2022-11-25 15:08:34:749 236 sec: 21188000 operations; 119000 current ops/sec; est completion in 3 minutes [INSERT: Count=119000, Max=1121279, Min=35680, Avg=339894.59, 90=738303, 99=1011199, 99.9=1121279, 99.99=1121279] 
+2022-11-25 15:08:35:749 237 sec: 21265000 operations; 77000 current ops/sec; est completion in 3 minutes [INSERT: Count=77000, Max=912383, Min=29232, Avg=183579.53, 90=753663, 99=912383, 99.9=912383, 99.99=912383] 
+2022-11-25 15:08:36:749 238 sec: 21345000 operations; 80000 current ops/sec; est completion in 3 minutes [INSERT: Count=80000, Max=1467391, Min=33824, Avg=250501, 90=1137663, 99=1467391, 99.9=1467391, 99.99=1467391] 
+2022-11-25 15:08:37:749 239 sec: 21417000 operations; 72000 current ops/sec; est completion in 3 minutes [INSERT: Count=72000, Max=1899519, Min=36096, Avg=426620.67, 90=1658879, 99=1899519, 99.9=1899519, 99.99=1899519] 
+2022-11-25 15:08:38:749 240 sec: 21468000 operations; 51000 current ops/sec; est completion in 3 minutes [INSERT: Count=51000, Max=2650111, Min=31696, Avg=625400, 90=2336767, 99=2650111, 99.9=2650111, 99.99=2650111] 
+2022-11-25 15:08:39:749 241 sec: 21529000 operations; 61000 current ops/sec; est completion in 3 minutes [INSERT: Count=61000, Max=2848767, Min=341760, Avg=1666738.36, 90=2459647, 99=2848767, 99.9=2848767, 99.99=2848767] 
+2022-11-25 15:08:40:749 242 sec: 21622000 operations; 93000 current ops/sec; est completion in 3 minutes [INSERT: Count=93000, Max=2256895, Min=692736, Avg=1462660.13, 90=1888255, 99=2256895, 99.9=2256895, 99.99=2256895] 
+2022-11-25 15:08:41:749 243 sec: 21738000 operations; 116000 current ops/sec; est completion in 3 minutes [INSERT: Count=116000, Max=1991679, Min=206336, Avg=1119793.1, 90=1611775, 99=1858559, 99.9=1991679, 99.99=1991679] 
+2022-11-25 15:08:42:749 244 sec: 21873000 operations; 135000 current ops/sec; est completion in 3 minutes [INSERT: Count=135000, Max=2496511, Min=33568, Avg=774188.68, 90=1976319, 99=2383871, 99.9=2496511, 99.99=2496511] 
+2022-11-25 15:08:43:749 245 sec: 21985000 operations; 112000 current ops/sec; est completion in 3 minutes [INSERT: Count=112000, Max=2189311, Min=30224, Avg=590661, 90=1574911, 99=2028543, 99.9=2189311, 99.99=2189311] 
+2022-11-25 15:08:44:749 246 sec: 22081000 operations; 96000 current ops/sec; est completion in 3 minutes [INSERT: Count=96000, Max=1362943, Min=30128, Avg=347339.92, 90=880639, 99=1362943, 99.9=1362943, 99.99=1362943] 
+2022-11-25 15:08:45:749 247 sec: 22165000 operations; 84000 current ops/sec; est completion in 3 minutes [INSERT: Count=84000, Max=1083391, Min=33952, Avg=196936.57, 90=883199, 99=1083391, 99.9=1083391, 99.99=1083391] 
+2022-11-25 15:08:46:748 248 sec: 22228000 operations; 63000 current ops/sec; est completion in 3 minutes [INSERT: Count=63000, Max=1442815, Min=34752, Avg=243171.81, 90=965119, 99=1442815, 99.9=1442815, 99.99=1442815] 
+2022-11-25 15:08:47:749 249 sec: 22282000 operations; 54000 current ops/sec; est completion in 3 minutes [INSERT: Count=54000, Max=2203647, Min=33952, Avg=700433.78, 90=1916927, 99=2203647, 99.9=2203647, 99.99=2203647] 
+2022-11-25 15:08:48:749 250 sec: 22321000 operations; 39000 current ops/sec; est completion in 3 minutes [INSERT: Count=39000, Max=2650111, Min=458496, Avg=1386535.38, 90=2566143, 99=2650111, 99.9=2650111, 99.99=2650111] 
+2022-11-25 15:08:49:749 251 sec: 22372000 operations; 51000 current ops/sec; est completion in 3 minutes [INSERT: Count=51000, Max=3151871, Min=747520, Avg=1816455.53, 90=2826239, 99=3151871, 99.9=3151871, 99.99=3151871] 
+2022-11-25 15:08:50:749 252 sec: 22459000 operations; 87000 current ops/sec; est completion in 3 minutes [INSERT: Count=87000, Max=3631103, Min=1099776, Avg=2275869.43, 90=3110911, 99=3631103, 99.9=3631103, 99.99=3631103] 
+2022-11-25 15:08:51:749 253 sec: 22586000 operations; 127000 current ops/sec; est completion in 3 minutes [INSERT: Count=127000, Max=3219455, Min=676864, Avg=1847670.93, 90=2664447, 99=3137535, 99.9=3219455, 99.99=3219455] 
+2022-11-25 15:08:52:749 254 sec: 22738000 operations; 152000 current ops/sec; est completion in 3 minutes [INSERT: Count=152000, Max=2433023, Min=143360, Avg=1297126.74, 90=2129919, 99=2408447, 99.9=2433023, 99.99=2433023] 
+2022-11-25 15:08:53:749 255 sec: 22876000 operations; 138000 current ops/sec; est completion in 3 minutes [INSERT: Count=138000, Max=2162687, Min=31312, Avg=706818.55, 90=1556479, 99=2111487, 99.9=2162687, 99.99=2162687] 
+2022-11-25 15:08:54:749 256 sec: 22984000 operations; 108000 current ops/sec; est completion in 3 minutes [INSERT: Count=108000, Max=1852415, Min=30240, Avg=353445.63, 90=998399, 99=1707007, 99.9=1852415, 99.99=1852415] 
+2022-11-25 15:08:55:749 257 sec: 23077000 operations; 93000 current ops/sec; est completion in 3 minutes [INSERT: Count=93000, Max=1260543, Min=33184, Avg=211972.47, 90=547839, 99=1260543, 99.9=1260543, 99.99=1260543] 
+2022-11-25 15:08:56:749 258 sec: 23129000 operations; 52000 current ops/sec; est completion in 3 minutes [INSERT: Count=52000, Max=1120255, Min=31936, Avg=311543.54, 90=1022975, 99=1120255, 99.9=1120255, 99.99=1120255] 
+2022-11-25 15:08:57:749 259 sec: 23180000 operations; 51000 current ops/sec; est completion in 3 minutes [INSERT: Count=51000, Max=1695743, Min=38240, Avg=706254.75, 90=1304575, 99=1695743, 99.9=1695743, 99.99=1695743] 
+2022-11-25 15:08:58:749 260 sec: 23224000 operations; 44000 current ops/sec; est completion in 3 minutes [INSERT: Count=44000, Max=2162687, Min=347904, Avg=1268904.73, 90=1804287, 99=2162687, 99.9=2162687, 99.99=2162687] 
+2022-11-25 15:08:59:749 261 sec: 23273000 operations; 49000 current ops/sec; est completion in 3 minutes [INSERT: Count=49000, Max=2680831, Min=991744, Avg=1788306.29, 90=2445311, 99=2680831, 99.9=2680831, 99.99=2680831] 
+2022-11-25 15:09:00:749 262 sec: 23335000 operations; 62000 current ops/sec; est completion in 3 minutes [INSERT: Count=62000, Max=3233791, Min=1538048, Avg=2165214.97, 90=2785279, 99=3233791, 99.9=3233791, 99.99=3233791] 
+2022-11-25 15:09:01:749 263 sec: 23447000 operations; 112000 current ops/sec; est completion in 3 minutes [INSERT: Count=112000, Max=3479551, Min=1034240, Avg=2194109.71, 90=3151871, 99=3461119, 99.9=3479551, 99.99=3479551] 
+2022-11-25 15:09:02:749 264 sec: 23578000 operations; 131000 current ops/sec; est completion in 3 minutes [INSERT: Count=131000, Max=3266559, Min=481792, Avg=1606682.38, 90=2691071, 99=3231743, 99.9=3266559, 99.99=3266559] 
+2022-11-25 15:09:03:749 265 sec: 23726000 operations; 148000 current ops/sec; est completion in 3 minutes [INSERT: Count=148000, Max=3354623, Min=36320, Avg=1359453.19, 90=2703359, 99=3348479, 99.9=3354623, 99.99=3354623] 
+2022-11-25 15:09:04:749 266 sec: 23853000 operations; 127000 current ops/sec; est completion in 3 minutes [INSERT: Count=127000, Max=2777087, Min=32016, Avg=898525.48, 90=2076671, 99=2693119, 99.9=2777087, 99.99=2777087] 
+2022-11-25 15:09:05:749 267 sec: 23960000 operations; 107000 current ops/sec; est completion in 2 minutes [INSERT: Count=107000, Max=2152447, Min=29024, Avg=541794.77, 90=1618943, 99=2059263, 99.9=2152447, 99.99=2152447] 
+2022-11-25 15:09:06:749 268 sec: 24037000 operations; 77000 current ops/sec; est completion in 2 minutes [INSERT: Count=77000, Max=1681407, Min=32736, Avg=474182.13, 90=913919, 99=1681407, 99.9=1681407, 99.99=1681407] 
+2022-11-25 15:09:07:749 269 sec: 24087000 operations; 50000 current ops/sec; est completion in 2 minutes [INSERT: Count=50000, Max=1352703, Min=31696, Avg=639214.72, 90=1206271, 99=1352703, 99.9=1352703, 99.99=1352703] 
+2022-11-25 15:09:08:749 270 sec: 24135000 operations; 48000 current ops/sec; est completion in 2 minutes [INSERT: Count=48000, Max=1947647, Min=270336, Avg=1232752, 90=1724415, 99=1947647, 99.9=1947647, 99.99=1947647] 
+2022-11-25 15:09:09:749 271 sec: 24184000 operations; 49000 current ops/sec; est completion in 2 minutes [INSERT: Count=49000, Max=2387967, Min=781824, Avg=1611870.04, 90=2191359, 99=2387967, 99.9=2387967, 99.99=2387967] 
+2022-11-25 15:09:10:749 272 sec: 24223000 operations; 39000 current ops/sec; est completion in 2 minutes [INSERT: Count=39000, Max=3012607, Min=1518592, Avg=2265468.72, 90=2729983, 99=3012607, 99.9=3012607, 99.99=3012607] 
+2022-11-25 15:09:11:749 273 sec: 24290000 operations; 67000 current ops/sec; est completion in 2 minutes [INSERT: Count=67000, Max=3252223, Min=1738752, Avg=2611444.54, 90=3022847, 99=3252223, 99.9=3252223, 99.99=3252223] 
+2022-11-25 15:09:12:749 274 sec: 24360000 operations; 70000 current ops/sec; est completion in 2 minutes [INSERT: Count=70000, Max=3571711, Min=1334272, Avg=2535548.34, 90=3252223, 99=3571711, 99.9=3571711, 99.99=3571711] 
+2022-11-25 15:09:13:749 275 sec: 24457000 operations; 97000 current ops/sec; est completion in 2 minutes [INSERT: Count=97000, Max=4546559, Min=553984, Avg=2608030.35, 90=3690495, 99=4546559, 99.9=4546559, 99.99=4546559] 
+2022-11-25 15:09:14:749 276 sec: 24579000 operations; 122000 current ops/sec; est completion in 2 minutes [INSERT: Count=122000, Max=4653055, Min=110016, Avg=2360377.44, 90=4280319, 99=4644863, 99.9=4653055, 99.99=4653055] 
+2022-11-25 15:09:15:749 277 sec: 24723000 operations; 144000 current ops/sec; est completion in 2 minutes [INSERT: Count=144000, Max=4530175, Min=34976, Avg=2413982.33, 90=3801087, 99=4354047, 99.9=4530175, 99.99=4530175] 
+2022-11-25 15:09:16:749 278 sec: 24858000 operations; 135000 current ops/sec; est completion in 2 minutes [INSERT: Count=135000, Max=3717119, Min=72704, Avg=1874861.27, 90=3041279, 99=3715071, 99.9=3717119, 99.99=3717119] 
+2022-11-25 15:09:17:749 279 sec: 24962000 operations; 104000 current ops/sec; est completion in 2 minutes [INSERT: Count=104000, Max=3235839, Min=89216, Avg=1545044, 90=2469887, 99=3131391, 99.9=3235839, 99.99=3235839] 
+2022-11-25 15:09:18:749 280 sec: 25062000 operations; 100000 current ops/sec; est completion in 2 minutes [INSERT: Count=100000, Max=2828287, Min=284928, Avg=1178410.24, 90=1845247, 99=2797567, 99.9=2828287, 99.99=2828287] 
+2022-11-25 15:09:19:749 281 sec: 25112000 operations; 50000 current ops/sec; est completion in 2 minutes [INSERT: Count=50000, Max=2443263, Min=544256, Avg=1339274.24, 90=1986559, 99=2443263, 99.9=2443263, 99.99=2443263] 
+2022-11-25 15:09:20:749 282 sec: 25166000 operations; 54000 current ops/sec; est completion in 2 minutes [INSERT: Count=54000, Max=2738175, Min=971776, Avg=1725923.56, 90=2299903, 99=2738175, 99.9=2738175, 99.99=2738175] 
+2022-11-25 15:09:21:749 283 sec: 25213000 operations; 47000 current ops/sec; est completion in 2 minutes [INSERT: Count=47000, Max=3252223, Min=1304576, Avg=2169877.79, 90=3004415, 99=3252223, 99.9=3252223, 99.99=3252223] 
+2022-11-25 15:09:22:749 284 sec: 25269000 operations; 56000 current ops/sec; est completion in 2 minutes [INSERT: Count=56000, Max=3731455, Min=1818624, Avg=2677613.71, 90=3467263, 99=3731455, 99.9=3731455, 99.99=3731455] 
+2022-11-25 15:09:23:748 285 sec: 25338000 operations; 69000 current ops/sec; est completion in 2 minutes [INSERT: Count=69000, Max=4222975, Min=2150400, Avg=2965682.09, 90=3459071, 99=4222975, 99.9=4222975, 99.99=4222975] 
+2022-11-25 15:09:24:748 286 sec: 25411000 operations; 73000 current ops/sec; est completion in 2 minutes [INSERT: Count=73000, Max=4702207, Min=1226752, Avg=2822172.05, 90=3790847, 99=4702207, 99.9=4702207, 99.99=4702207] 
+2022-11-25 15:09:25:749 287 sec: 25499000 operations; 88000 current ops/sec; est completion in 2 minutes [INSERT: Count=88000, Max=5136383, Min=649216, Avg=2719360, 90=4073471, 99=5136383, 99.9=5136383, 99.99=5136383] 
+2022-11-25 15:09:26:749 288 sec: 25599000 operations; 100000 current ops/sec; est completion in 2 minutes [INSERT: Count=100000, Max=5480447, Min=210560, Avg=2449478.4, 90=4243455, 99=5308415, 99.9=5480447, 99.99=5480447] 
+2022-11-25 15:09:27:748 289 sec: 25662000 operations; 63000 current ops/sec; est completion in 2 minutes [INSERT: Count=63000, Max=6234111, Min=337408, Avg=3036755.3, 90=4972543, 99=6234111, 99.9=6234111, 99.99=6234111] 
+2022-11-25 15:09:28:749 290 sec: 25789000 operations; 127000 current ops/sec; est completion in 2 minutes [INSERT: Count=127000, Max=6615039, Min=607744, Avg=3587767.43, 90=5570559, 99=6533119, 99.9=6615039, 99.99=6615039] 
+2022-11-25 15:09:29:749 291 sec: 25912000 operations; 123000 current ops/sec; est completion in 2 minutes [INSERT: Count=123000, Max=5799935, Min=848896, Avg=3330788.94, 90=5312511, 99=5791743, 99.9=5799935, 99.99=5799935] 
+2022-11-25 15:09:30:749 292 sec: 26015000 operations; 103000 current ops/sec; est completion in 2 minutes [INSERT: Count=103000, Max=5124095, Min=915456, Avg=3168499.57, 90=4603903, 99=4980735, 99.9=5124095, 99.99=5124095] 
+2022-11-25 15:09:31:748 293 sec: 26125000 operations; 110000 current ops/sec; est completion in 2 minutes [INSERT: Count=110000, Max=4231167, Min=1121280, Avg=2471163.35, 90=3735551, 99=4079615, 99.9=4231167, 99.99=4231167] 
+2022-11-25 15:09:32:749 294 sec: 26181000 operations; 56000 current ops/sec; est completion in 2 minutes [INSERT: Count=56000, Max=3753983, Min=1080320, Avg=2562422.86, 90=3596287, 99=3753983, 99.9=3753983, 99.99=3753983] 
+2022-11-25 15:09:33:748 295 sec: 26235000 operations; 54000 current ops/sec; est completion in 2 minutes [INSERT: Count=54000, Max=4329471, Min=1779712, Avg=2916190.81, 90=3702783, 99=4329471, 99.9=4329471, 99.99=4329471] 
+2022-11-25 15:09:34:749 296 sec: 26312000 operations; 77000 current ops/sec; est completion in 2 minutes [INSERT: Count=77000, Max=4513791, Min=2174976, Avg=3254631.06, 90=4108287, 99=4513791, 99.9=4513791, 99.99=4513791] 
+2022-11-25 15:09:35:749 297 sec: 26385000 operations; 73000 current ops/sec; est completion in 2 minutes [INSERT: Count=73000, Max=4722687, Min=1739776, Avg=3109614.47, 90=3897343, 99=4722687, 99.9=4722687, 99.99=4722687] 
+2022-11-25 15:09:36:749 298 sec: 26466000 operations; 81000 current ops/sec; est completion in 2 minutes [INSERT: Count=81000, Max=5300223, Min=1046528, Avg=2836786.57, 90=4165631, 99=5300223, 99.9=5300223, 99.99=5300223] 
+2022-11-25 15:09:37:749 299 sec: 26550000 operations; 84000 current ops/sec; est completion in 2 minutes [INSERT: Count=84000, Max=5898239, Min=478720, Avg=2839539.81, 90=5246975, 99=5898239, 99.9=5898239, 99.99=5898239] 
+2022-11-25 15:09:38:749 300 sec: 26627000 operations; 77000 current ops/sec; est completion in 2 minutes [INSERT: Count=77000, Max=6316031, Min=344064, Avg=3687528.73, 90=5115903, 99=6316031, 99.9=6316031, 99.99=6316031] 
+2022-11-25 15:09:39:749 301 sec: 26709000 operations; 82000 current ops/sec; est completion in 2 minutes [INSERT: Count=82000, Max=6750207, Min=821760, Avg=4005369.76, 90=5525503, 99=6750207, 99.9=6750207, 99.99=6750207] 
+2022-11-25 15:09:40:749 302 sec: 26806000 operations; 97000 current ops/sec; est completion in 2 minutes [INSERT: Count=97000, Max=7688191, Min=1080320, Avg=3690754.64, 90=5279743, 99=7688191, 99.9=7688191, 99.99=7688191] 
+2022-11-25 15:09:41:749 303 sec: 26913000 operations; 107000 current ops/sec; est completion in 2 minutes [INSERT: Count=107000, Max=7913471, Min=1301504, Avg=3767037.61, 90=6311935, 99=7847935, 99.9=7913471, 99.99=7913471] 
+2022-11-25 15:09:42:749 304 sec: 27014000 operations; 101000 current ops/sec; est completion in 2 minutes [INSERT: Count=101000, Max=7172095, Min=1086464, Avg=4012964.75, 90=6365183, 99=7020543, 99.9=7172095, 99.99=7172095] 
+2022-11-25 15:09:43:749 305 sec: 27121000 operations; 107000 current ops/sec; est completion in 2 minutes [INSERT: Count=107000, Max=6553599, Min=1479680, Avg=3688543.7, 90=5513215, 99=6475775, 99.9=6553599, 99.99=6553599] 
+2022-11-25 15:09:44:749 306 sec: 27201000 operations; 80000 current ops/sec; est completion in 2 minutes [INSERT: Count=80000, Max=5783551, Min=1289216, Avg=3595174.4, 90=4997119, 99=5783551, 99.9=5783551, 99.99=5783551] 
+2022-11-25 15:09:45:749 307 sec: 27273000 operations; 72000 current ops/sec; est completion in 2 minutes [INSERT: Count=72000, Max=4861951, Min=2030592, Avg=3553628.44, 90=4370431, 99=4861951, 99.9=4861951, 99.99=4861951] 
+2022-11-25 15:09:46:749 308 sec: 27345000 operations; 72000 current ops/sec; est completion in 2 minutes [INSERT: Count=72000, Max=5001215, Min=2131968, Avg=3737443.56, 90=4476927, 99=5001215, 99.9=5001215, 99.99=5001215] 
+2022-11-25 15:09:47:749 309 sec: 27421000 operations; 76000 current ops/sec; est completion in 2 minutes [INSERT: Count=76000, Max=5505023, Min=2596864, Avg=3682506.11, 90=4894719, 99=5505023, 99.9=5505023, 99.99=5505023] 
+2022-11-25 15:09:48:749 310 sec: 27492000 operations; 71000 current ops/sec; est completion in 2 minutes [INSERT: Count=71000, Max=6307839, Min=2258944, Avg=3550857.01, 90=4550655, 99=6307839, 99.9=6307839, 99.99=6307839] 
+2022-11-25 15:09:49:749 311 sec: 27566000 operations; 74000 current ops/sec; est completion in 2 minutes [INSERT: Count=74000, Max=6569983, Min=1519616, Avg=3393536, 90=5251071, 99=6569983, 99.9=6569983, 99.99=6569983] 
+2022-11-25 15:09:50:749 312 sec: 27632000 operations; 66000 current ops/sec; est completion in 2 minutes [INSERT: Count=66000, Max=7303167, Min=788992, Avg=3652317.09, 90=5795839, 99=7303167, 99.9=7303167, 99.99=7303167] 
+2022-11-25 15:09:51:749 313 sec: 27670000 operations; 38000 current ops/sec; est completion in 2 minutes [INSERT: Count=38000, Max=7872511, Min=1504256, Avg=4611597.47, 90=6443007, 99=7872511, 99.9=7872511, 99.99=7872511] 
+2022-11-25 15:09:52:749 314 sec: 27730000 operations; 60000 current ops/sec; est completion in 2 minutes [INSERT: Count=60000, Max=8421375, Min=1784832, Avg=5414826.67, 90=7090175, 99=8421375, 99.9=8421375, 99.99=8421375] 
+2022-11-25 15:09:53:749 315 sec: 27806000 operations; 76000 current ops/sec; est completion in 2 minutes [INSERT: Count=76000, Max=8204287, Min=2038784, Avg=5692220.63, 90=7806975, 99=8204287, 99.9=8204287, 99.99=8204287] 
+2022-11-25 15:09:54:781 316 sec: 27910000 operations; 100677.64 current ops/sec; est completion in 2 minutes [INSERT: Count=104000, Max=8429567, Min=2410496, Avg=5877120, 90=7512063, 99=8404991, 99.9=8429567, 99.99=8429567] 
+2022-11-25 15:09:55:749 317 sec: 28044000 operations; 138572.91 current ops/sec; est completion in 2 minutes [INSERT: Count=134000, Max=8478719, Min=2723840, Avg=5726200.36, 90=7331839, 99=8368127, 99.9=8478719, 99.99=8478719] 
+2022-11-25 15:09:56:749 318 sec: 28162000 operations; 118000 current ops/sec; est completion in 2 minutes [INSERT: Count=118000, Max=7507967, Min=3121152, Avg=5073633.63, 90=6209535, 99=7483391, 99.9=7507967, 99.99=7507967] 
+2022-11-25 15:09:57:749 319 sec: 28268000 operations; 106000 current ops/sec; est completion in 2 minutes [INSERT: Count=106000, Max=6832127, Min=2064384, Avg=4647332.23, 90=5894143, 99=6766591, 99.9=6832127, 99.99=6832127] 
+2022-11-25 15:09:58:749 320 sec: 28365000 operations; 97000 current ops/sec; est completion in 2 minutes [INSERT: Count=97000, Max=6303743, Min=1836032, Avg=4460280.08, 90=5844991, 99=6303743, 99.9=6303743, 99.99=6303743] 
+2022-11-25 15:09:59:749 321 sec: 28440000 operations; 75000 current ops/sec; est completion in 2 minutes [INSERT: Count=75000, Max=6668287, Min=2174976, Avg=4381641.39, 90=5439487, 99=6668287, 99.9=6668287, 99.99=6668287] 
+2022-11-25 15:10:00:749 322 sec: 28515000 operations; 75000 current ops/sec; est completion in 2 minutes [INSERT: Count=75000, Max=7204863, Min=2547712, Avg=4354594.13, 90=5459967, 99=7204863, 99.9=7204863, 99.99=7204863] 
+2022-11-25 15:10:01:749 323 sec: 28595000 operations; 80000 current ops/sec; est completion in 2 minutes [INSERT: Count=80000, Max=7372799, Min=1905664, Avg=4237465.6, 90=6287359, 99=7372799, 99.9=7372799, 99.99=7372799] 
+2022-11-25 15:10:02:749 324 sec: 28670000 operations; 75000 current ops/sec; est completion in 2 minutes [INSERT: Count=75000, Max=7880703, Min=1487872, Avg=4269813.76, 90=6918143, 99=7880703, 99.9=7880703, 99.99=7880703] 
+2022-11-25 15:10:03:749 325 sec: 28722000 operations; 52000 current ops/sec; est completion in 2 minutes [INSERT: Count=52000, Max=8282111, Min=1172480, Avg=4870419.69, 90=7290879, 99=8282111, 99.9=8282111, 99.99=8282111] 
+2022-11-25 15:10:04:749 326 sec: 28774000 operations; 52000 current ops/sec; est completion in 2 minutes [INSERT: Count=52000, Max=8667135, Min=1971200, Avg=5412627.69, 90=7671807, 99=8667135, 99.9=8667135, 99.99=8667135] 
+2022-11-25 15:10:05:749 327 sec: 28841000 operations; 67000 current ops/sec; est completion in 2 minutes [INSERT: Count=67000, Max=9224191, Min=2285568, Avg=6273008.72, 90=8388607, 99=9224191, 99.9=9224191, 99.99=9224191] 
+2022-11-25 15:10:06:749 328 sec: 28910000 operations; 69000 current ops/sec; est completion in 2 minutes [INSERT: Count=69000, Max=9134079, Min=2684928, Avg=6233236.41, 90=8749055, 99=9134079, 99.9=9134079, 99.99=9134079] 
+2022-11-25 15:10:07:749 329 sec: 28999000 operations; 89000 current ops/sec; est completion in 1 minute [INSERT: Count=89000, Max=9084927, Min=2957312, Avg=6534305.08, 90=8839167, 99=9084927, 99.9=9084927, 99.99=9084927] 
+2022-11-25 15:10:08:749 330 sec: 29124000 operations; 125000 current ops/sec; est completion in 1 minute [INSERT: Count=125000, Max=9764863, Min=3274752, Avg=6299230.21, 90=8462335, 99=9601023, 99.9=9764863, 99.99=9764863] 
+2022-11-25 15:10:09:749 331 sec: 29242000 operations; 118000 current ops/sec; est completion in 1 minute [INSERT: Count=118000, Max=9723903, Min=2637824, Avg=6317029.97, 90=8830975, 99=9576447, 99.9=9723903, 99.99=9723903] 
+2022-11-25 15:10:10:749 332 sec: 29351000 operations; 109000 current ops/sec; est completion in 1 minute [INSERT: Count=109000, Max=8675327, Min=3106816, Avg=5709495.19, 90=7794687, 99=8626175, 99.9=8675327, 99.99=8675327] 
+2022-11-25 15:10:11:749 333 sec: 29456000 operations; 105000 current ops/sec; est completion in 1 minute [INSERT: Count=105000, Max=8421375, Min=2981888, Avg=5729143.47, 90=7655423, 99=8413183, 99.9=8421375, 99.99=8421375] 
+2022-11-25 15:10:12:749 334 sec: 29549000 operations; 93000 current ops/sec; est completion in 1 minute [INSERT: Count=93000, Max=8097791, Min=3358720, Avg=5109000.26, 90=7176191, 99=8097791, 99.9=8097791, 99.99=8097791] 
+2022-11-25 15:10:13:749 335 sec: 29625000 operations; 76000 current ops/sec; est completion in 1 minute [INSERT: Count=76000, Max=8470527, Min=2899968, Avg=4805699.37, 90=6705151, 99=8470527, 99.9=8470527, 99.99=8470527] 
+2022-11-25 15:10:14:749 336 sec: 29701000 operations; 76000 current ops/sec; est completion in 1 minute [INSERT: Count=76000, Max=8593407, Min=2433024, Avg=4954583.58, 90=7946239, 99=8593407, 99.9=8593407, 99.99=8593407] 
+2022-11-25 15:10:15:749 337 sec: 29773000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=9125887, Min=1733632, Avg=4948010.67, 90=7360511, 99=9125887, 99.9=9125887, 99.99=9125887] 
+2022-11-25 15:10:16:749 338 sec: 29821000 operations; 48000 current ops/sec; est completion in 1 minute [INSERT: Count=48000, Max=9617407, Min=2406400, Avg=6107626.67, 90=8798207, 99=9617407, 99.9=9617407, 99.99=9617407] 
+2022-11-25 15:10:17:749 339 sec: 29876000 operations; 55000 current ops/sec; est completion in 1 minute [INSERT: Count=55000, Max=10067967, Min=2676736, Avg=6604204.22, 90=9175039, 99=10067967, 99.9=10067967, 99.99=10067967] 
+2022-11-25 15:10:18:749 340 sec: 29956000 operations; 80000 current ops/sec; est completion in 1 minute [INSERT: Count=80000, Max=9863167, Min=3125248, Avg=6957286.4, 90=9371647, 99=9863167, 99.9=9863167, 99.99=9863167] 
+2022-11-25 15:10:19:749 341 sec: 30031000 operations; 75000 current ops/sec; est completion in 1 minute [INSERT: Count=75000, Max=10199039, Min=3526656, Avg=6443212.8, 90=9084927, 99=10199039, 99.9=10199039, 99.99=10199039] 
+2022-11-25 15:10:20:749 342 sec: 30104000 operations; 73000 current ops/sec; est completion in 1 minute [INSERT: Count=73000, Max=10338303, Min=3383296, Avg=6545702.58, 90=9592831, 99=10338303, 99.9=10338303, 99.99=10338303] 
+2022-11-25 15:10:21:749 343 sec: 30173000 operations; 69000 current ops/sec; est completion in 1 minute [INSERT: Count=69000, Max=10969087, Min=2975744, Avg=6534411.13, 90=10076159, 99=10969087, 99.9=10969087, 99.99=10969087] 
+2022-11-25 15:10:22:749 344 sec: 30260000 operations; 87000 current ops/sec; est completion in 1 minute [INSERT: Count=87000, Max=11288575, Min=3280896, Avg=8454932.6, 90=10641407, 99=11288575, 99.9=11288575, 99.99=11288575] 
+2022-11-25 15:10:23:748 345 sec: 30368000 operations; 108000 current ops/sec; est completion in 1 minute [INSERT: Count=108000, Max=10412031, Min=3964928, Avg=8121334.52, 90=10035199, 99=10412031, 99.9=10412031, 99.99=10412031] 
+2022-11-25 15:10:24:749 346 sec: 30477000 operations; 109000 current ops/sec; est completion in 1 minute [INSERT: Count=109000, Max=9789439, Min=4374528, Avg=7576641.76, 90=9199615, 99=9699327, 99.9=9789439, 99.99=9789439] 
+2022-11-25 15:10:25:749 347 sec: 30581000 operations; 104000 current ops/sec; est completion in 1 minute [INSERT: Count=104000, Max=9043967, Min=4407296, Avg=7142852.92, 90=8355839, 99=9027583, 99.9=9043967, 99.99=9043967] 
+2022-11-25 15:10:26:749 348 sec: 30659000 operations; 78000 current ops/sec; est completion in 1 minute [INSERT: Count=78000, Max=8896511, Min=5320704, Avg=6756798.36, 90=7892991, 99=8896511, 99.9=8896511, 99.99=8896511] 
+2022-11-25 15:10:27:749 349 sec: 30731000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=9240575, Min=5718016, Avg=6930517.33, 90=8290303, 99=9240575, 99.9=9240575, 99.99=9240575] 
+2022-11-25 15:10:28:749 350 sec: 30798000 operations; 67000 current ops/sec; est completion in 1 minute [INSERT: Count=67000, Max=9863167, Min=5353472, Avg=6703593.07, 90=8577023, 99=9863167, 99.9=9863167, 99.99=9863167] 
+2022-11-25 15:10:29:749 351 sec: 30878000 operations; 80000 current ops/sec; est completion in 1 minute [INSERT: Count=80000, Max=10592255, Min=4632576, Avg=6817510.4, 90=9125887, 99=10592255, 99.9=10592255, 99.99=10592255] 
+2022-11-25 15:10:30:749 352 sec: 30934000 operations; 56000 current ops/sec; est completion in 1 minute [INSERT: Count=56000, Max=11214847, Min=4366336, Avg=7109156.57, 90=9560063, 99=11214847, 99.9=11214847, 99.99=11214847] 
+2022-11-25 15:10:31:749 353 sec: 30994000 operations; 60000 current ops/sec; est completion in 1 minute [INSERT: Count=60000, Max=11567103, Min=4632576, Avg=8090112, 90=10043391, 99=11567103, 99.9=11567103, 99.99=11567103] 
+2022-11-25 15:10:32:749 354 sec: 31064000 operations; 70000 current ops/sec; est completion in 1 minute [INSERT: Count=70000, Max=11272191, Min=4812800, Avg=8338490.51, 90=10919935, 99=11272191, 99.9=11272191, 99.99=11272191] 
+2022-11-25 15:10:33:749 355 sec: 31140000 operations; 76000 current ops/sec; est completion in 1 minute [INSERT: Count=76000, Max=11345919, Min=5566464, Avg=8376158.32, 90=10895359, 99=11345919, 99.9=11345919, 99.99=11345919] 
+2022-11-25 15:10:34:749 356 sec: 31212000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=11902975, Min=5758976, Avg=8508273.78, 90=11149311, 99=11902975, 99.9=11902975, 99.99=11902975] 
+2022-11-25 15:10:35:749 357 sec: 31298000 operations; 86000 current ops/sec; est completion in 1 minute [INSERT: Count=86000, Max=11993087, Min=4816896, Avg=8480863.26, 90=11804671, 99=11993087, 99.9=11993087, 99.99=11993087] 
+2022-11-25 15:10:36:749 358 sec: 31389000 operations; 91000 current ops/sec; est completion in 1 minute [INSERT: Count=91000, Max=12279807, Min=5251072, Avg=9634939.78, 90=11993087, 99=12279807, 99.9=12279807, 99.99=12279807] 
+2022-11-25 15:10:37:749 359 sec: 31502000 operations; 113000 current ops/sec; est completion in 1 minute [INSERT: Count=113000, Max=11837439, Min=5804032, Avg=9373949.73, 90=11296767, 99=11730943, 99.9=11837439, 99.99=11837439] 
+2022-11-25 15:10:38:749 360 sec: 31602000 operations; 100000 current ops/sec; est completion in 1 minute [INSERT: Count=100000, Max=10895359, Min=5853184, Avg=8845987.84, 90=10444799, 99=10764287, 99.9=10895359, 99.99=10895359] 
+2022-11-25 15:10:39:749 361 sec: 31703000 operations; 101000 current ops/sec; est completion in 1 minute [INSERT: Count=101000, Max=10371071, Min=6627328, Avg=8423180.67, 90=9838591, 99=10289151, 99.9=10371071, 99.99=10371071] 
+2022-11-25 15:10:40:749 362 sec: 31775000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=10878975, Min=6049792, Avg=8370261.33, 90=9617407, 99=10878975, 99.9=10878975, 99.99=10878975] 
+2022-11-25 15:10:41:749 363 sec: 31850000 operations; 75000 current ops/sec; est completion in 1 minute [INSERT: Count=75000, Max=11542527, Min=6787072, Avg=8333066.24, 90=9822207, 99=11542527, 99.9=11542527, 99.99=11542527] 
+2022-11-25 15:10:42:757 364 sec: 31926000 operations; 75322.1 current ops/sec; est completion in 1 minute [INSERT: Count=76000, Max=12075007, Min=6332416, Avg=8420675.37, 90=10305535, 99=12075007, 99.9=12075007, 99.99=12075007] 
+2022-11-25 15:10:43:749 365 sec: 31998000 operations; 72653.88 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=12402687, Min=5287936, Avg=8145720.89, 90=10878975, 99=12402687, 99.9=12402687, 99.99=12402687] 
+2022-11-25 15:10:44:749 366 sec: 32065000 operations; 67000 current ops/sec; est completion in 1 minute [INSERT: Count=67000, Max=13123583, Min=5304320, Avg=8223789.85, 90=11149311, 99=13123583, 99.9=13123583, 99.99=13123583] 
+2022-11-25 15:10:45:749 367 sec: 32138000 operations; 73000 current ops/sec; est completion in 1 minute [INSERT: Count=73000, Max=13254655, Min=5451776, Avg=9964810.52, 90=12640255, 99=13254655, 99.9=13254655, 99.99=13254655] 
+2022-11-25 15:10:46:749 368 sec: 32212000 operations; 74000 current ops/sec; est completion in 1 minute [INSERT: Count=74000, Max=12451839, Min=5541888, Avg=9672565.62, 90=12230655, 99=12451839, 99.9=12451839, 99.99=12451839] 
+2022-11-25 15:10:47:749 369 sec: 32284000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=12918783, Min=6008832, Avg=9477176.89, 90=11911167, 99=12918783, 99.9=12918783, 99.99=12918783] 
+2022-11-25 15:10:48:749 370 sec: 32356000 operations; 72000 current ops/sec; est completion in 1 minute [INSERT: Count=72000, Max=13860863, Min=6221824, Avg=9734741.33, 90=12615679, 99=13860863, 99.9=13860863, 99.99=13860863] 
+2022-11-25 15:10:49:749 371 sec: 32438000 operations; 82000 current ops/sec; est completion in 1 minute [INSERT: Count=82000, Max=14057471, Min=5853184, Avg=10189049.76, 90=13451263, 99=14057471, 99.9=14057471, 99.99=14057471] 
+2022-11-25 15:10:50:749 372 sec: 32518000 operations; 80000 current ops/sec; est completion in 1 minute [INSERT: Count=80000, Max=13983743, Min=5996544, Avg=10438604.8, 90=13189119, 99=13983743, 99.9=13983743, 99.99=13983743] 
+2022-11-25 15:10:51:749 373 sec: 32626000 operations; 108000 current ops/sec; est completion in 1 minute [INSERT: Count=108000, Max=14417919, Min=6500352, Avg=10963759.41, 90=13459455, 99=14286847, 99.9=14417919, 99.99=14417919] 
+2022-11-25 15:10:52:749 374 sec: 32718000 operations; 92000 current ops/sec; est completion in 1 minute [INSERT: Count=92000, Max=13385727, Min=6926336, Avg=10335877.57, 90=12287999, 99=13385727, 99.9=13385727, 99.99=13385727] 
+2022-11-25 15:10:53:749 375 sec: 32841000 operations; 123000 current ops/sec; est completion in 1 minute [INSERT: Count=123000, Max=12959743, Min=7421952, Avg=9955361.3, 90=11812863, 99=12918783, 99.9=12959743, 99.99=12959743] 
+2022-11-25 15:10:54:749 376 sec: 32939000 operations; 98000 current ops/sec; est completion in 1 minute [INSERT: Count=98000, Max=12492799, Min=7843840, Avg=9377938.29, 90=11870207, 99=12492799, 99.9=12492799, 99.99=12492799] 
+2022-11-25 15:10:55:749 377 sec: 33023000 operations; 84000 current ops/sec; est completion in 1 minute [INSERT: Count=84000, Max=13410303, Min=6414336, Avg=9142418.29, 90=12091391, 99=13410303, 99.9=13410303, 99.99=13410303] 
+2022-11-25 15:10:56:749 378 sec: 33102000 operations; 79000 current ops/sec; est completion in 1 minute [INSERT: Count=79000, Max=13410303, Min=5787648, Avg=8755848.1, 90=12443647, 99=13410303, 99.9=13410303, 99.99=13410303] 
+2022-11-25 15:10:57:749 379 sec: 33164000 operations; 62000 current ops/sec; est completion in 1 minute [INSERT: Count=62000, Max=14172159, Min=5402624, Avg=9243681.03, 90=12713983, 99=14172159, 99.9=14172159, 99.99=14172159] 
+2022-11-25 15:10:58:749 380 sec: 33222000 operations; 58000 current ops/sec; est completion in 1 minute [INSERT: Count=58000, Max=14753791, Min=5529600, Avg=10665772.14, 90=13991935, 99=14753791, 99.9=14753791, 99.99=14753791] 
+2022-11-25 15:10:59:749 381 sec: 33295000 operations; 73000 current ops/sec; est completion in 1 minute [INSERT: Count=73000, Max=14524415, Min=6184960, Avg=11096120.11, 90=13910015, 99=14524415, 99.9=14524415, 99.99=14524415] 
+2022-11-25 15:11:00:749 382 sec: 33362000 operations; 67000 current ops/sec; est completion in 1 minute [INSERT: Count=67000, Max=14467071, Min=6361088, Avg=10736196.78, 90=14073855, 99=14467071, 99.9=14467071, 99.99=14467071] 
+2022-11-25 15:11:01:749 383 sec: 33436000 operations; 74000 current ops/sec; est completion in 1 minute [INSERT: Count=74000, Max=14942207, Min=6975488, Avg=10760856.22, 90=13598719, 99=14942207, 99.9=14942207, 99.99=14942207] 
+2022-11-25 15:11:02:749 384 sec: 33504000 operations; 68000 current ops/sec; est completion in 1 minute [INSERT: Count=68000, Max=15155199, Min=6852608, Avg=11025709.18, 90=13279231, 99=15155199, 99.9=15155199, 99.99=15155199] 
+2022-11-25 15:11:03:749 385 sec: 33584000 operations; 80000 current ops/sec; est completion in 1 minute [INSERT: Count=80000, Max=15302655, Min=6922240, Avg=11594649.6, 90=14983167, 99=15302655, 99.9=15302655, 99.99=15302655] 
+2022-11-25 15:11:04:748 386 sec: 33667000 operations; 83000 current ops/sec; est completion in 1 minute [INSERT: Count=83000, Max=15933439, Min=7208960, Avg=11644681.25, 90=14565375, 99=15933439, 99.9=15933439, 99.99=15933439] 
+2022-11-25 15:11:05:749 387 sec: 33780000 operations; 113000 current ops/sec; est completion in 1 minute [INSERT: Count=113000, Max=16203775, Min=7454720, Avg=11870316.74, 90=14573567, 99=16097279, 99.9=16203775, 99.99=16203775] 
+2022-11-25 15:11:06:748 388 sec: 33915000 operations; 135000 current ops/sec; est completion in 59 seconds [INSERT: Count=135000, Max=15384575, Min=7766016, Avg=10840412.92, 90=13721599, 99=15302655, 99.9=15384575, 99.99=15384575] 
+2022-11-25 15:11:07:748 389 sec: 34044000 operations; 129000 current ops/sec; est completion in 58 seconds [INSERT: Count=129000, Max=14614527, Min=7196672, Avg=10449594.54, 90=13737983, 99=14499839, 99.9=14614527, 99.99=14614527] 
+2022-11-25 15:11:08:748 390 sec: 34143000 operations; 99000 current ops/sec; est completion in 57 seconds [INSERT: Count=99000, Max=14417919, Min=6160384, Avg=9885592.57, 90=13385727, 99=14417919, 99.9=14417919, 99.99=14417919] 
+2022-11-25 15:11:09:748 391 sec: 34216000 operations; 73000 current ops/sec; est completion in 56 seconds [INSERT: Count=73000, Max=14704639, Min=5640192, Avg=9087032.11, 90=12730367, 99=14704639, 99.9=14704639, 99.99=14704639] 
+2022-11-25 15:11:10:748 392 sec: 34265000 operations; 49000 current ops/sec; est completion in 55 seconds [INSERT: Count=49000, Max=15491071, Min=5980160, Avg=10269215.35, 90=14598143, 99=15491071, 99.9=15491071, 99.99=15491071] 
+2022-11-25 15:11:11:748 393 sec: 34317000 operations; 52000 current ops/sec; est completion in 54 seconds [INSERT: Count=52000, Max=15900671, Min=6246400, Avg=11057664, 90=15171583, 99=15900671, 99.9=15900671, 99.99=15900671] 
+2022-11-25 15:11:12:749 394 sec: 34366000 operations; 49000 current ops/sec; est completion in 53 seconds [INSERT: Count=49000, Max=16236543, Min=6602752, Avg=11238797.06, 90=14893055, 99=16236543, 99.9=16236543, 99.99=16236543] 
+2022-11-25 15:11:13:748 395 sec: 34422000 operations; 56000 current ops/sec; est completion in 52 seconds [INSERT: Count=56000, Max=16859135, Min=7303168, Avg=12446976, 90=16400383, 99=16859135, 99.9=16859135, 99.99=16859135] 
+2022-11-25 15:11:14:748 396 sec: 34497000 operations; 75000 current ops/sec; est completion in 51 seconds [INSERT: Count=75000, Max=16580607, Min=7487488, Avg=12790852.27, 90=16228351, 99=16580607, 99.9=16580607, 99.99=16580607] 
+2022-11-25 15:11:15:748 397 sec: 34572000 operations; 75000 current ops/sec; est completion in 50 seconds [INSERT: Count=75000, Max=16130047, Min=8192000, Avg=12993276.59, 90=15884287, 99=16130047, 99.9=16130047, 99.99=16130047] 
+2022-11-25 15:11:16:748 398 sec: 34648000 operations; 76000 current ops/sec; est completion in 49 seconds [INSERT: Count=76000, Max=16646143, Min=8228864, Avg=12312629.89, 90=15089663, 99=16646143, 99.9=16646143, 99.99=16646143] 
+2022-11-25 15:11:17:748 399 sec: 34745000 operations; 97000 current ops/sec; est completion in 48 seconds [INSERT: Count=97000, Max=16941055, Min=9019392, Avg=13056485.61, 90=16302079, 99=16941055, 99.9=16941055, 99.99=16941055] 
+2022-11-25 15:11:18:748 400 sec: 34831000 operations; 86000 current ops/sec; est completion in 47 seconds [INSERT: Count=86000, Max=17350655, Min=9101312, Avg=12438170.79, 90=15179775, 99=17350655, 99.9=17350655, 99.99=17350655] 
+2022-11-25 15:11:19:748 401 sec: 34945000 operations; 114000 current ops/sec; est completion in 46 seconds [INSERT: Count=114000, Max=17678335, Min=8306688, Avg=12320103.3, 90=15581183, 99=17563647, 99.9=17678335, 99.99=17678335] 
+2022-11-25 15:11:20:748 402 sec: 35076000 operations; 131000 current ops/sec; est completion in 45 seconds [INSERT: Count=131000, Max=17072127, Min=7462912, Avg=11915467.24, 90=14950399, 99=16990207, 99.9=17072127, 99.99=17072127] 
+2022-11-25 15:11:21:748 403 sec: 35192000 operations; 116000 current ops/sec; est completion in 44 seconds [INSERT: Count=116000, Max=16498687, Min=7049216, Avg=11518958.34, 90=15704063, 99=16400383, 99.9=16498687, 99.99=16498687] 
+2022-11-25 15:11:22:748 404 sec: 35301000 operations; 109000 current ops/sec; est completion in 42 seconds [INSERT: Count=109000, Max=15867903, Min=6500352, Avg=11430996.55, 90=15032319, 99=15835135, 99.9=15867903, 99.99=15867903] 
+2022-11-25 15:11:23:748 405 sec: 35371000 operations; 70000 current ops/sec; est completion in 41 seconds [INSERT: Count=70000, Max=16482303, Min=6295552, Avg=10733450.97, 90=14778367, 99=16482303, 99.9=16482303, 99.99=16482303] 
+2022-11-25 15:11:24:748 406 sec: 35421000 operations; 50000 current ops/sec; est completion in 40 seconds [INSERT: Count=50000, Max=16752639, Min=6483968, Avg=11824824.32, 90=15335423, 99=16752639, 99.9=16752639, 99.99=16752639] 
+2022-11-25 15:11:25:748 407 sec: 35475000 operations; 54000 current ops/sec; est completion in 39 seconds [INSERT: Count=54000, Max=17154047, Min=6995968, Avg=12130000.59, 90=15695871, 99=17154047, 99.9=17154047, 99.99=17154047] 
+2022-11-25 15:11:26:748 408 sec: 35526000 operations; 51000 current ops/sec; est completion in 38 seconds [INSERT: Count=51000, Max=17842175, Min=7573504, Avg=12531993.1, 90=16293887, 99=17842175, 99.9=17842175, 99.99=17842175] 
+2022-11-25 15:11:27:749 409 sec: 35585000 operations; 59000 current ops/sec; est completion in 37 seconds [INSERT: Count=59000, Max=17940479, Min=7884800, Avg=13662208, 90=17596415, 99=17940479, 99.9=17940479, 99.99=17940479] 
+2022-11-25 15:11:28:748 410 sec: 35659000 operations; 74000 current ops/sec; est completion in 36 seconds [INSERT: Count=74000, Max=17514495, Min=8437760, Avg=13596118.49, 90=17170431, 99=17514495, 99.9=17514495, 99.99=17514495] 
+2022-11-25 15:11:29:748 411 sec: 35733000 operations; 74000 current ops/sec; est completion in 35 seconds [INSERT: Count=74000, Max=17891327, Min=8978432, Avg=13655344.43, 90=17285119, 99=17891327, 99.9=17891327, 99.99=17891327] 
+2022-11-25 15:11:30:748 412 sec: 35811000 operations; 78000 current ops/sec; est completion in 34 seconds [INSERT: Count=78000, Max=18612223, Min=9142272, Avg=13648922.26, 90=16613375, 99=18612223, 99.9=18612223, 99.99=18612223] 
+2022-11-25 15:11:31:748 413 sec: 35878000 operations; 67000 current ops/sec; est completion in 33 seconds [INSERT: Count=67000, Max=19054591, Min=9723904, Avg=13483053.85, 90=18481151, 99=19054591, 99.9=19054591, 99.99=19054591] 
+2022-11-25 15:11:32:748 414 sec: 35954000 operations; 76000 current ops/sec; est completion in 32 seconds [INSERT: Count=76000, Max=19136511, Min=10461184, Avg=14539452.63, 90=18579455, 99=19136511, 99.9=19136511, 99.99=19136511] 
+2022-11-25 15:11:33:748 415 sec: 36060000 operations; 106000 current ops/sec; est completion in 31 seconds [INSERT: Count=106000, Max=19628031, Min=9977856, Avg=13499102.19, 90=17547263, 99=19513343, 99.9=19628031, 99.99=19628031] 
+2022-11-25 15:11:34:748 416 sec: 36164000 operations; 104000 current ops/sec; est completion in 30 seconds [INSERT: Count=104000, Max=20086783, Min=9478144, Avg=13142921.85, 90=16891903, 99=20070399, 99.9=20086783, 99.99=20086783] 
+2022-11-25 15:11:35:748 417 sec: 36290000 operations; 126000 current ops/sec; est completion in 29 seconds [INSERT: Count=126000, Max=20004863, Min=8806400, Avg=13538450.29, 90=17219583, 99=19906559, 99.9=20004863, 99.99=20004863] 
+2022-11-25 15:11:36:748 418 sec: 36409000 operations; 119000 current ops/sec; est completion in 28 seconds [INSERT: Count=119000, Max=19628031, Min=8040448, Avg=13043247.33, 90=17285119, 99=19480575, 99.9=19628031, 99.99=19628031] 
+2022-11-25 15:11:37:748 419 sec: 36499000 operations; 90000 current ops/sec; est completion in 27 seconds [INSERT: Count=90000, Max=18874367, Min=7798784, Avg=13423934.58, 90=18022399, 99=18874367, 99.9=18874367, 99.99=18874367] 
+2022-11-25 15:11:38:749 420 sec: 36563000 operations; 64000 current ops/sec; est completion in 26 seconds [INSERT: Count=64000, Max=18300927, Min=8216576, Avg=13755392, 90=17399807, 99=18300927, 99.9=18300927, 99.99=18300927] 
+2022-11-25 15:11:39:749 421 sec: 36618000 operations; 55000 current ops/sec; est completion in 25 seconds [INSERT: Count=55000, Max=18759679, Min=8454144, Avg=13415442.62, 90=17547263, 99=18759679, 99.9=18759679, 99.99=18759679] 
+2022-11-25 15:11:40:748 422 sec: 36674000 operations; 56000 current ops/sec; est completion in 24 seconds [INSERT: Count=56000, Max=19185663, Min=8945664, Avg=14013732.57, 90=17989631, 99=19185663, 99.9=19185663, 99.99=19185663] 
+2022-11-25 15:11:41:748 423 sec: 36748000 operations; 74000 current ops/sec; est completion in 23 seconds [INSERT: Count=74000, Max=18972671, Min=9469952, Avg=14710396.54, 90=18464767, 99=18972671, 99.9=18972671, 99.99=18972671] 
+2022-11-25 15:11:42:748 424 sec: 36822000 operations; 74000 current ops/sec; est completion in 22 seconds [INSERT: Count=74000, Max=18989055, Min=9797632, Avg=14678514.16, 90=18235391, 99=18989055, 99.9=18989055, 99.99=18989055] 
+2022-11-25 15:11:43:748 425 sec: 36901000 operations; 79000 current ops/sec; est completion in 21 seconds [INSERT: Count=79000, Max=19267583, Min=10158080, Avg=14682034.23, 90=17809407, 99=19267583, 99.9=19267583, 99.99=19267583] 
+2022-11-25 15:11:44:749 426 sec: 36969000 operations; 68000 current ops/sec; est completion in 20 seconds [INSERT: Count=68000, Max=19775487, Min=10715136, Avg=14318592, 90=17104895, 99=19775487, 99.9=19775487, 99.99=19775487] 
+2022-11-25 15:11:45:749 427 sec: 37021000 operations; 52000 current ops/sec; est completion in 19 seconds [INSERT: Count=52000, Max=20185087, Min=11345920, Avg=15060913.23, 90=19464191, 99=20185087, 99.9=20185087, 99.99=20185087] 
+2022-11-25 15:11:46:748 428 sec: 37070000 operations; 49000 current ops/sec; est completion in 18 seconds [INSERT: Count=49000, Max=20660223, Min=11616256, Avg=15254925.06, 90=20103167, 99=20660223, 99.9=20660223, 99.99=20660223] 
+2022-11-25 15:11:47:748 429 sec: 37153000 operations; 83000 current ops/sec; est completion in 17 seconds [INSERT: Count=83000, Max=21020671, Min=11395072, Avg=15482189.11, 90=20070399, 99=21020671, 99.9=21020671, 99.99=21020671] 
+2022-11-25 15:11:48:748 430 sec: 37252000 operations; 99000 current ops/sec; est completion in 16 seconds [INSERT: Count=99000, Max=21741567, Min=10526720, Avg=14900048.16, 90=19562495, 99=21741567, 99.9=21741567, 99.99=21741567] 
+2022-11-25 15:11:49:749 431 sec: 37344000 operations; 92000 current ops/sec; est completion in 15 seconds [INSERT: Count=92000, Max=22167551, Min=10076160, Avg=14666262.26, 90=19070975, 99=22167551, 99.9=22167551, 99.99=22167551] 
+2022-11-25 15:11:50:749 432 sec: 37453000 operations; 109000 current ops/sec; est completion in 14 seconds [INSERT: Count=109000, Max=22790143, Min=9240576, Avg=14270238.53, 90=18710527, 99=22560767, 99.9=22790143, 99.99=22790143] 
+2022-11-25 15:11:51:748 433 sec: 37559000 operations; 106000 current ops/sec; est completion in 13 seconds [INSERT: Count=106000, Max=23150591, Min=8003584, Avg=14802847.4, 90=20447231, 99=23052287, 99.9=23150591, 99.99=23150591] 
+2022-11-25 15:11:52:748 434 sec: 37638000 operations; 79000 current ops/sec; est completion in 12 seconds [INSERT: Count=79000, Max=22708223, Min=8110080, Avg=16636707.65, 90=22183935, 99=22708223, 99.9=22708223, 99.99=22708223] 
+2022-11-25 15:11:53:748 435 sec: 37730000 operations; 92000 current ops/sec; est completion in 11 seconds [INSERT: Count=92000, Max=21954559, Min=8781824, Avg=16530432, 90=19415039, 99=21954559, 99.9=21954559, 99.99=21954559] 
+2022-11-25 15:11:54:748 436 sec: 37840000 operations; 110000 current ops/sec; est completion in 10 seconds [INSERT: Count=110000, Max=21659647, Min=9142272, Avg=16555808.58, 90=20660223, 99=21528575, 99.9=21659647, 99.99=21659647] 
+2022-11-25 15:11:55:748 437 sec: 37920000 operations; 80000 current ops/sec; est completion in 9 second [INSERT: Count=80000, Max=20905983, Min=9822208, Avg=15098521.6, 90=18071551, 99=20905983, 99.9=20905983, 99.99=20905983] 
+2022-11-25 15:11:56:748 438 sec: 37999000 operations; 79000 current ops/sec; est completion in 8 second [INSERT: Count=79000, Max=21217279, Min=10485760, Avg=15035119.8, 90=18546687, 99=21217279, 99.9=21217279, 99.99=21217279] 
+2022-11-25 15:11:57:748 439 sec: 38073000 operations; 74000 current ops/sec; est completion in 6 second [INSERT: Count=74000, Max=21577727, Min=10625024, Avg=15016489.51, 90=18710527, 99=21577727, 99.9=21577727, 99.99=21577727] 
+2022-11-25 15:11:58:748 440 sec: 38116000 operations; 43000 current ops/sec; est completion in 5 second [INSERT: Count=43000, Max=22167551, Min=11165696, Avg=15718447.63, 90=20201471, 99=22167551, 99.9=22167551, 99.99=22167551] 
+2022-11-25 15:11:59:748 441 sec: 38166000 operations; 50000 current ops/sec; est completion in 4 second [INSERT: Count=50000, Max=22347775, Min=11436032, Avg=16121446.4, 90=19857407, 99=22347775, 99.9=22347775, 99.99=22347775] 
+2022-11-25 15:12:00:748 442 sec: 38216000 operations; 50000 current ops/sec; est completion in 3 second [INSERT: Count=50000, Max=23232511, Min=12091392, Avg=16832921.6, 90=21315583, 99=23232511, 99.9=23232511, 99.99=23232511] 
+2022-11-25 15:12:01:748 443 sec: 38259000 operations; 43000 current ops/sec; est completion in 2 second [INSERT: Count=43000, Max=23330815, Min=12386304, Avg=17117850.79, 90=21594111, 99=23330815, 99.9=23330815, 99.99=23330815] 
+2022-11-25 15:12:02:748 444 sec: 38339000 operations; 80000 current ops/sec; est completion in 1 second [INSERT: Count=80000, Max=24084479, Min=12836864, Avg=18021580.8, 90=21872639, 99=24084479, 99.9=24084479, 99.99=24084479] 
+Client 1 sends TerminationMsg to shard 0
+Client 0 sends TerminationMsg to shard 0
+Client 2 sends TerminationMsg to shard 0
+Client 0 sends TerminationMsg to shard 1
+Client 2 sends TerminationMsg to shard 1
+Client 1 sends TerminationMsg to shard 1
+Client 0 sends TerminationMsg to shard 2
+Client 2 sends TerminationMsg to shard 2
+Client 0 sends TerminationMsg to shard 3
+Client 2 sends TerminationMsg to shard 3
+Client 1 sends TerminationMsg to shard 2
+Client 1 sends TerminationMsg to shard 3
+Client 3 sends TerminationMsg to shard 0
+Client 3 sends TerminationMsg to shard 1
+Client 3 sends TerminationMsg to shard 2
+Client 3 sends TerminationMsg to shard 3
+2022-11-25 15:12:03:748 445 sec: 38437000 operations; 98000 current ops/sec; [INSERT: Count=98000, Max=24641535, Min=12664832, Avg=17250429.39, 90=21217279, 99=24641535, 99.9=24641535, 99.99=24641535] 
+2022-11-25 15:12:04:749 446 sec: 38535000 operations; 98000 current ops/sec; [INSERT: Count=98000, Max=24854527, Min=12197888, Avg=16614462.69, 90=21315583, 99=24854527, 99.9=24854527, 99.99=24854527] 
+2022-11-25 15:12:05:748 447 sec: 38651000 operations; 116000 current ops/sec; [INSERT: Count=116000, Max=25116671, Min=11681792, Avg=17234308.41, 90=22216703, 99=25100287, 99.9=25116671, 99.99=25116671] 
+2022-11-25 15:12:06:748 448 sec: 38755000 operations; 104000 current ops/sec; [INSERT: Count=104000, Max=24494079, Min=11116544, Avg=16986545.23, 90=21905407, 99=24379391, 99.9=24494079, 99.99=24494079] 
+2022-11-25 15:12:07:748 449 sec: 38844000 operations; 89000 current ops/sec; [INSERT: Count=89000, Max=23658495, Min=11231232, Avg=17844293.03, 90=22839295, 99=23658495, 99.9=23658495, 99.99=23658495] 
+2022-11-25 15:12:08:748 450 sec: 38936000 operations; 92000 current ops/sec; [INSERT: Count=92000, Max=22626303, Min=11526144, Avg=18284054.26, 90=21839871, 99=22626303, 99.9=22626303, 99.99=22626303] 
+2022-11-25 15:12:09:748 451 sec: 39023000 operations; 87000 current ops/sec; [INSERT: Count=87000, Max=21544959, Min=11902976, Avg=17491803.22, 90=20004863, 99=21544959, 99.9=21544959, 99.99=21544959] 
+2022-11-25 15:12:10:748 452 sec: 39105000 operations; 82000 current ops/sec; [INSERT: Count=82000, Max=21856255, Min=12369920, Avg=16996052.29, 90=19922943, 99=21856255, 99.9=21856255, 99.99=21856255] 
+2022-11-25 15:12:11:748 453 sec: 39180000 operations; 75000 current ops/sec; [INSERT: Count=75000, Max=22364159, Min=12902400, Avg=16933082.45, 90=20529151, 99=22364159, 99.9=22364159, 99.99=22364159] 
+2022-11-25 15:12:12:748 454 sec: 39247000 operations; 67000 current ops/sec; [INSERT: Count=67000, Max=22593535, Min=13336576, Avg=16903519.52, 90=21299199, 99=22593535, 99.9=22593535, 99.99=22593535] 
+2022-11-25 15:12:13:748 455 sec: 39297000 operations; 50000 current ops/sec; [INSERT: Count=50000, Max=22822911, Min=13656064, Avg=17486069.76, 90=21528575, 99=22822911, 99.9=22822911, 99.99=22822911] 
+2022-11-25 15:12:14:748 456 sec: 39349000 operations; 52000 current ops/sec; [INSERT: Count=52000, Max=23674879, Min=14090240, Avg=18007512.62, 90=22118399, 99=23674879, 99.9=23674879, 99.99=23674879] 
+2022-11-25 15:12:15:748 457 sec: 39402000 operations; 53000 current ops/sec; [INSERT: Count=53000, Max=23986175, Min=14491648, Avg=18398691.02, 90=22249471, 99=23986175, 99.9=23986175, 99.99=23986175] 
+2022-11-25 15:12:16:749 458 sec: 39450000 operations; 48000 current ops/sec; [INSERT: Count=48000, Max=24690687, Min=14811136, Avg=19039061.33, 90=22822911, 99=24690687, 99.9=24690687, 99.99=24690687] 
+2022-11-25 15:12:17:748 459 sec: 39518000 operations; 68000 current ops/sec; [INSERT: Count=68000, Max=25378815, Min=15482880, Avg=19666401.88, 90=23052287, 99=25378815, 99.9=25378815, 99.99=25378815] 
+2022-11-25 15:12:18:748 460 sec: 39620415 operations; 102415 current ops/sec; [INSERT: Count=102415, Max=25772031, Min=15155200, Avg=18975836.54, 90=22921215, 99=25690111, 99.9=25772031, 99.99=25772031] 
+2022-11-25 15:12:19:748 461 sec: 39684981 operations; 64566 current ops/sec; [INSERT: Count=64566, Max=26722303, Min=15245312, Avg=19335302.43, 90=21921791, 99=26722303, 99.9=26722303, 99.99=26722303] 
+2022-11-25 15:12:20:748 462 sec: 39748824 operations; 63843 current ops/sec; [INSERT: Count=63843, Max=27017215, Min=17154048, Avg=21004240.91, 90=24838143, 99=27017215, 99.9=27017215, 99.99=27017215] 
+2022-11-25 15:12:21:748 463 sec: 39824139 operations; 75315 current ops/sec; [INSERT: Count=75315, Max=26804223, Min=17514496, Avg=21816268.4, 90=26181631, 99=26804223, 99.9=26804223, 99.99=26804223] 
+2022-11-25 15:12:22:748 464 sec: 39905163 operations; 81024 current ops/sec; [INSERT: Count=81024, Max=25985023, Min=18366464, Avg=21944804.7, 90=25198591, 99=25985023, 99.9=25985023, 99.99=25985023] 
+requestObserver.onCompleted shard: 2 client: 3 write:true 2022-11-25 15:12:23.247
+replyObserver.onError shard: 1 client: 3 write:true 2022-11-25 15:12:23.25
+[grpc-default-executor-68] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+replyObserver.onError shard: 2 client: 3 write:false 2022-11-25 15:12:23.251
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+replyObserver.onError shard: 1 client: 3 write:false 2022-11-25 15:12:23.251
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+replyObserver.onError shard: 0 client: 3 write:false 2022-11-25 15:12:23.252	at java.base/java.lang.Thread.run(Thread.java:829)
+
+[grpc-default-executor-65] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-69] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+replyObserver.onError shard: 2 client: 3 write:true 2022-11-25 15:12:23.253[grpc-default-executor-7] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)replyObserver.onError shard: 3 client: 3 write:false 2022-11-25 15:12:23.253
+
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+replyObserver.onError shard: 3 client: 3 write:true 2022-11-25 15:12:23.253	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-71] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-68] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+replyObserver.onError shard: 0 client: 3 write:true 2022-11-25 15:12:23.254
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-70] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-72] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+2022-11-25 15:12:23:749 465 sec: 39978300 operations; 73137 current ops/sec; [CLEANUP: Count=1, Max=11567, Min=11560, Avg=11564, 90=11567, 99=11567, 99.9=11567, 99.99=11567] [INSERT: Count=73137, Max=24887295, Min=19529728, Avg=21736185.63, 90=24117247, 99=24887295, 99.9=24887295, 99.99=24887295] 
+requestObserver.onCompleted shard: 2 client: 2 write:true 2022-11-25 15:12:23.899
+replyObserver.onError shard: 0 client: 2 write:true 2022-11-25 15:12:23.9
+[grpc-default-executor-72] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+replyObserver.onError shard: 1 client: 2 write:false 2022-11-25 15:12:23.9
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+replyObserver.onError shard: 0 client: 2 write:false 2022-11-25 15:12:23.901
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+replyObserver.onError shard: 3 client: 2 write:false 2022-11-25 15:12:23.901	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+replyObserver.onError shard: 1 client: 2 write:true 2022-11-25 15:12:23.901	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+replyObserver.onError shard: 3 client: 2 write:true 2022-11-25 15:12:23.902	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)replyObserver.onError shard: 2 client: 2 write:false 2022-11-25 15:12:23.901
+
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-71] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-65] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-69] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-7] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+replyObserver.onError shard: 2 client: 2 write:true 2022-11-25 15:12:23.902	at java.base/java.lang.Thread.run(Thread.java:829)
+
+[grpc-default-executor-73] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-68] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-70] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+requestObserver.onCompleted shard: 2 client: 0 write:true 2022-11-25 15:12:23.952
+replyObserver.onError shard: 1 client: 0 write:false 2022-11-25 15:12:23.954
+[grpc-default-executor-68] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+replyObserver.onError shard: 2 client: 0 write:true 2022-11-25 15:12:23.954	at io.grpc.Status.asRuntimeException(Status.java:535)
+
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+replyObserver.onError shard: 3 client: 0 write:false 2022-11-25 15:12:23.954	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+replyObserver.onError shard: 1 client: 0 write:true 2022-11-25 15:12:23.955	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+replyObserver.onError shard: 0 client: 0 write:false 2022-11-25 15:12:23.955	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+
+replyObserver.onError shard: 3 client: 0 write:true 2022-11-25 15:12:23.955	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+replyObserver.onError shard: 0 client: 0 write:true 2022-11-25 15:12:23.955[grpc-default-executor-65] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+
+[grpc-default-executor-73] ERROR site.ycsb.DBWrapper - Encountered error in sendReplyreplyObserver.onError shard: 2 client: 0 write:false 2022-11-25 15:12:23.955
+
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-7] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-69] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-71] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-70] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-72] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+2022-11-25 15:12:24:749 466 sec: 39998828 operations; 20528 current ops/sec; [CLEANUP: Count=2, Max=3961, Min=3046, Avg=3504, 90=3961, 99=3961, 99.9=3961, 99.99=3961] [INSERT: Count=20528, Max=22839295, Min=20381696, Avg=21642433.95, 90=22560767, 99=22839295, 99.9=22839295, 99.99=22839295] 
+requestObserver.onCompleted shard: 2 client: 1 write:true 2022-11-25 15:12:24.791
+replyObserver.onError shard: 2 client: 1 write:true 2022-11-25 15:12:24.792
+[grpc-default-executor-72] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+replyObserver.onError shard: 2 client: 1 write:false 2022-11-25 15:12:24.792
+replyObserver.onError shard: 1 client: 1 write:true 2022-11-25 15:12:24.792
+replyObserver.onError shard: 3 client: 1 write:true 2022-11-25 15:12:24.792
+replyObserver.onError shard: 1 client: 1 write:false 2022-11-25 15:12:24.792
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+replyObserver.onError shard: 0 client: 1 write:false 2022-11-25 15:12:24.792	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+replyObserver.onError shard: 0 client: 1 write:true 2022-11-25 15:12:24.792	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)replyObserver.onError shard: 3 client: 1 write:false 2022-11-25 15:12:24.792
+
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[grpc-default-executor-68] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-65] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-71] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-69] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-73] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-70] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+[grpc-default-executor-7] ERROR site.ycsb.DBWrapper - Encountered error in sendReply
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+io.grpc.StatusRuntimeException: UNAVAILABLE: Channel shutdownNow invoked
+	at io.grpc.Status.asRuntimeException(Status.java:535)
+	at io.grpc.stub.ClientCalls$StreamObserverToCallListenerAdapter.onClose(ClientCalls.java:478)
+	at io.grpc.internal.DelayedClientCall$DelayedListener$3.run(DelayedClientCall.java:463)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.delayOrExecute(DelayedClientCall.java:427)
+	at io.grpc.internal.DelayedClientCall$DelayedListener.onClose(DelayedClientCall.java:460)
+	at io.grpc.internal.ClientCallImpl.closeObserver(ClientCallImpl.java:553)
+	at io.grpc.internal.ClientCallImpl.access$300(ClientCallImpl.java:68)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInternal(ClientCallImpl.java:739)
+	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed.runInContext(ClientCallImpl.java:718)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:123)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+2022-11-25 15:12:24:797 466 sec: 40000000 operations; 23918.37 current ops/sec; [CLEANUP: Count=1, Max=5447, Min=5444, Avg=5446, 90=5447, 99=5447, 99.9=5447, 99.99=5447] [INSERT: Count=1172, Max=21315583, Min=21282816, Avg=21304987.52, 90=21315583, 99=21315583, 99.9=21315583, 99.99=21315583] 
+[OVERALL], RunTime(ms), 466049
+[OVERALL], Throughput(ops/sec), 85827.88505071355
+[TOTAL_GCS_G1_Young_Generation], Count, 130
+[TOTAL_GC_TIME_G1_Young_Generation], Time(ms), 2279
+[TOTAL_GC_TIME_%_G1_Young_Generation], Time(%), 0.48900437507644046
+[TOTAL_GCS_G1_Old_Generation], Count, 0
+[TOTAL_GC_TIME_G1_Old_Generation], Time(ms), 0
+[TOTAL_GC_TIME_%_G1_Old_Generation], Time(%), 0.0
+[TOTAL_GCs], Count, 130
+[TOTAL_GC_TIME], Time(ms), 2279
+[TOTAL_GC_TIME_%], Time(%), 0.48900437507644046
+[CLEANUP], Operations, 4
+[CLEANUP], AverageLatency(us), 6004.5
+[CLEANUP], MinLatency(us), 3046
+[CLEANUP], MaxLatency(us), 11567
+[CLEANUP], 95thPercentileLatency(us), 11567
+[CLEANUP], 99thPercentileLatency(us), 11567
+[INSERT], Operations, 40000000
+[INSERT], AverageLatency(us), 5050937.0037152
+[INSERT], MinLatency(us), 27536
+[INSERT], MaxLatency(us), 27017215
+[INSERT], 95thPercentileLatency(us), 17940479
+[INSERT], 99thPercentileLatency(us), 21577727
+[INSERT], Return=OK, 40000000
