@@ -178,12 +178,14 @@ public class Replicator {
           if (shardIdx == -1) {
             shardIdx   = reply.getShardIdx();
             clientIdx  = reply.getClientIdx();
-            isWrite    = reply.getReplies(0).getType() != OpType.GET;
+            isWrite    = reply.getReplies(0).getType() != OpType.GET &&
+              reply.getReplies(0).getType() != OpType.SCAN;
             isWriteInt = isWrite ? 1 : 0;
           }
           assert(shardIdx  == reply.getShardIdx());
           assert(clientIdx == reply.getClientIdx());
-          assert(isWrite   == (reply.getReplies(0).getType() != OpType.GET));
+          assert(isWrite   == (reply.getReplies(0).getType() != OpType.GET &&
+            reply.getReplies(0).getType() != OpType.SCAN));
           observerMap[shardIdx][clientIdx][isWriteInt].onNext(reply);
         }
 
@@ -261,12 +263,14 @@ public class Replicator {
           if (shardIdx == -1) {
             shardIdx   = request.getShardIdx();
             clientIdx  = request.getClientIdx();
-            isWrite    = request.getOps(0).getType() != OpType.GET;
+            isWrite    = request.getOps(0).getType() != OpType.GET &&
+              request.getOps(0).getType() != OpType.SCAN;
             isWriteInt = isWrite ? 1 : 0;
           }
           assert(shardIdx  == request.getShardIdx());
           assert(clientIdx == request.getClientIdx());
-          assert(isWrite   == (request.getOps(0).getType() != OpType.GET));
+          assert(isWrite   == (request.getOps(0).getType() != OpType.GET &&
+            request.getOps(0).getType() != OpType.SCAN));
 
           if (responseObserver != observerMap[shardIdx][clientIdx][isWriteInt]) {
             System.out.println("observerMap[" + shardIdx + "] " + "[" + clientIdx + "] " + "[" + isWriteInt + "] " +

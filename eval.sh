@@ -162,10 +162,12 @@ massacre()
 
 process_results()
 {
+	start_cut=$1
+	end_cut=$2
     grep Throughput ycsb.out
     cp ycsb.out ycsb-${suffix}.out
     cp replicator.out replicator-${suffix}.out
-    python3 plot-thru.py ycsb-${suffix}.out 10
+    python3 plot-thru.py ycsb-${suffix}.out 10 ${start_cut} ${end_cut}
 
     for (( i=0; i<${rf}; i++ ))
     do
@@ -208,4 +210,6 @@ bash $phase.sh $workload localhost:$replicator_port $shard_num $sleep_ms $rate $
 massacre
 
 # 7. save results and plot figures
-process_results
+start_cut=1000
+end_cut=300
+process_results ${start_cut} ${end_cut}
