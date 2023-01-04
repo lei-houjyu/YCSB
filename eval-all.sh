@@ -39,13 +39,6 @@ disable_offload()
     done
 }
 
-for idx in $(seq 0 3)
-do
-    cnt=$(( $shard_num * 10000000 ))
-    sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workload[$idx]}
-    sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workload[$idx]}
-done
-
 disable_offload
 bash eval.sh load a 90000 rubble-load-$suffix 4 rubble $shard_num $rf
 enable_offload

@@ -178,6 +178,16 @@ process_results()
     done
 }
 
+update_workload_file() {
+    local shard_num=$1
+    for wl in "a" "b" "c" "d" "e" "f" "g"
+    do
+        local cnt=$(( $shard_num * 10000000 ))
+        sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
+        sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
+    done
+}
+
 # 1. start db instances
 launch_all_nodes
 
@@ -188,6 +198,7 @@ replicator_args=$(assemble_args)
     -p port=$replicator_port $replicator_args -p replica=$rf > replicator.out 2>&1 &
 
 # 3. load the database
+update_workload_file $shard_num
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
