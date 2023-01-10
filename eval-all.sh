@@ -17,7 +17,7 @@ workload=("a" "b" "c" "d" "e" "f" "g")
 # r6525 nodes
 if [ $rf -eq 2 ]; then
     if [ $shard_num -eq 2 ]; then
-        # 2 shard 2 replica
+       # 2 shard 2 replica
         load_rate=90000
         rate=(80000 90000 90000 160000)
     elif [ $shard_num -eq 4 ]; then
@@ -229,7 +229,7 @@ done
 eval_with_recovery load a $load_rate rubble-offload-load-$suffix 4 $shard_num $rf
 bash eval.sh load a $load_rate baseline-load-$suffix 4 baseline $shard_num $rf
 
-for idx in $(seq 4 6)
+for idx in $(seq 0 6)
 do
     echo workload ${workload[$idx]} rate ${rate[$idx]} op/sec
     # disable_offload

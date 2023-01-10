@@ -162,10 +162,12 @@ massacre()
 
 process_results()
 {
+	start_cut=$1
+	end_cut=$2
     grep Throughput ycsb.out
     cp ycsb.out ycsb-${suffix}.out
     cp replicator.out replicator-${suffix}.out
-    python3 plot-thru.py ycsb-${suffix}.out 10
+    python3 plot-thru.py ycsb-${suffix}.out 10 ${start_cut} ${end_cut}
 
     for (( i=0; i<${rf}; i++ ))
     do
@@ -173,6 +175,16 @@ process_results()
         ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 ${cpu_num};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10;"
+    done
+}
+
+update_workload_file() {
+    local shard_num=$1
+    for wl in "a" "b" "c" "d" "e" "f" "g"
+    do
+        local cnt=$(( $shard_num * 10000000 ))
+        sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
+        sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
     done
 }
 
@@ -186,6 +198,7 @@ replicator_args=$(assemble_args)
     -p port=$replicator_port $replicator_args -p replica=$rf > replicator.out 2>&1 &
 
 # 3. load the database
+update_workload_file $shard_num
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
@@ -208,4 +221,6 @@ bash $phase.sh $workload localhost:$replicator_port $shard_num $sleep_ms $rate $
 massacre
 
 # 7. save results and plot figures
-process_results
+start_cut=1000
+end_cut=300
+process_results ${start_cut} ${end_cut}

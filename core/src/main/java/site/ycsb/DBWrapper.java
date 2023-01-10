@@ -92,6 +92,7 @@ public class DBWrapper extends DB {
   // read batch
   private OpType[][] readTypes;
   private String[][] readKeys;
+  private int[][] scanRecordCnts;
   private int[] readBatchSize;
   private boolean needReInit;
   private CoreWorkload workload;
@@ -169,6 +170,11 @@ public class DBWrapper extends DB {
             case GET:
               synchronized(measurements) {
                 measurements.measure("READ" + suffix, (int)latency);
+              }
+              break;
+            case SCAN:
+            synchronized(measurements) {
+                measurements.measure("SCAN" + suffix, (int)latency);
               }
               break;
             case UPDATE:
@@ -269,6 +275,7 @@ public class DBWrapper extends DB {
     writeBatchSize = new int[shardNum];
     readTypes = new OpType[shardNum][DB.BATCHSIZE];
     readKeys  = new String[shardNum][DB.BATCHSIZE];
+    scanRecordCnts = new int[shardNum][DB.BATCHSIZE];
     readBatchSize = new int[shardNum];
     // [Rubble]
   }
@@ -319,6 +326,9 @@ public class DBWrapper extends DB {
         opBuilder.setKeynum(writeKeynums[shardIdx][i]);
       }
       opBuilder.setTargetMemId(0);
+      if (opBuilder.getType() == OpType.SCAN) {
+        opBuilder.setRecordCnt(scanRecordCnts[shardIdx][i]);
+      }
       builder.addOps(opBuilder.build());
     }
 
@@ -401,11 +411,27 @@ public class DBWrapper extends DB {
     try (final TraceScope span = tracer.newScope(scopeStringScan)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
-      Status res = db.scan(table, startkey, recordcount, fields, result);
+      // Status res = db.scan(table, startkey, recordcount, fields, result)
+
+      // [Rubble]: send this op to replicator
+      try {
+        int idx = (int)(Long.parseLong(startkey.substring(4)) % shardNum);
+        readTypes[idx][readBatchSize[idx]] = OpType.SCAN;
+        readKeys[idx][readBatchSize[idx]] = startkey;
+        scanRecordCnts[idx][readBatchSize[idx]] = recordcount;
+        readBatchSize[idx]++;
+        if (readBatchSize[idx] == DB.BATCHSIZE) {
+          sendBatch(false, idx);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       long en = System.nanoTime();
-      measure("SCAN", res, ist, st, en);
+    //   measure("SCAN", res, ist, st, en);
+      Status res = Status.OK;
       measurements.reportStatus("SCAN", res);
       return res;
+      // [Rubble]
     }
   }
 
