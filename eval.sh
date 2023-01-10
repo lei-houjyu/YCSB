@@ -16,7 +16,7 @@ client_num=$5
 mode=$6
 shard_num=$7
 rf=$8
-cpu_num=$client_num
+cpu_num=$(( 1 * client_num ))
 
 echo -e "\033[0;32m ${phase} ${workload} ${mode} \033[0m"
 
@@ -130,11 +130,11 @@ relax_cpu()
 
 wait_pending_jobs()
 {
-    pid=()
+    local pid=()
 
     for (( i=0; i<${shard_num}; i++ ))
     do
-        db_dir="/mnt/data/db/shard-${i}/db/LOG"
+        local db_dir="/mnt/data/db/shard-${i}/db/LOG"
 
         for (( j=0; j<${rf}; j++ ))
         do
@@ -191,7 +191,7 @@ echo "" > ycsb.out
 if [ $phase != load ]; then
     #relax_cpu
 
-    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 90000 $client_num > ycsb.out 2>&1
+    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
     wait_pending_jobs
 
