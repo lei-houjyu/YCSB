@@ -500,11 +500,15 @@ public class DBWrapper extends DB {
    */
   public Status insert(String table, String key,
                        Map<String, ByteIterator> values) {
-    return insert(table, key, values, INVALID_KEYNUM);
+    return insert(table, key, values, INVALID_KEYNUM, "");
+  }
+
+  public Status insert(String table, String key, String value) {
+    return insert(table, key, null, INVALID_KEYNUM, value);
   }
 
   public Status insert(String table, String key,
-                       Map<String, ByteIterator> values, long keynum) {
+                       Map<String, ByteIterator> values, long keynum, String valueStr) {
     try (final TraceScope span = tracer.newScope(scopeStringInsert)) {
       long ist = measurements.getIntendedStartTimeNs();
       long st = System.nanoTime();
@@ -514,7 +518,11 @@ public class DBWrapper extends DB {
         int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
         writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
         writeKeys[idx][writeBatchSize[idx]] = key;
-        writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        if (valueStr == "") {
+          writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
+        } else {
+          writeVals[idx][writeBatchSize[idx]] = valueStr;
+        }
         writeKeynums[idx][writeBatchSize[idx]] = keynum;
         writeBatchSize[idx]++;
         if (writeBatchSize[idx] == DB.BATCHSIZE) {

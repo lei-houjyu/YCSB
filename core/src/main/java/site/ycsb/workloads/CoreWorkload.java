@@ -23,6 +23,7 @@ import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.measurements.Measurements;
 
 import java.io.IOException;
+import java.io.FileInputStream;
 import java.util.*;
 
 /**
@@ -368,6 +369,55 @@ public class CoreWorkload extends Workload {
   protected int zeropadding;
   protected int insertionRetryLimit;
   protected int insertionRetryInterval;
+  // [Rubble]
+  public static final String TWITTER_TRACE_PROPERTY = "twittertrace";
+  public static final String TWITTER_TRACE_DEFAULT = "";
+  protected String twitterTrace;
+
+  public boolean isTwitterWorkload() {
+    return twitterTrace != TWITTER_TRACE_DEFAULT;
+  }
+
+  public void replayTrace(DB db, int threadid, int threadcount) {
+    System.out.println("Replay Twitter trace in thread " + threadid);
+    FileInputStream inputStream = null;
+    Random rand = new Random();
+    Scanner sc = null;
+    try {
+      inputStream = new FileInputStream(twitterTrace);
+      sc = new Scanner(inputStream, "UTF-8");
+      int lineNumber = 0;
+      while (sc.hasNextLine()) {
+        String line = sc.nextLine();
+        if (lineNumber % threadcount == threadid) {
+          String[] request   = line.split(",");
+          String   key       = request[1];
+          int      valueByte = Integer.parseInt(request[3]);
+          String   operation = request[5];
+
+          switch (operation) {
+          case "get":
+            db.read(table, key, null, null);
+            break;
+          case "set":
+            byte[] bytes = new byte[valueByte];
+            rand.nextBytes(bytes);
+            String val = new String(bytes);
+            ((DBWrapper)db).insert(table, key, null, 0, val);
+            break;
+          default:
+            break;
+          }
+        }
+        lineNumber++;
+      }
+      sc.close();
+      inputStream.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  // [Rubble]
 
   private Measurements measurements = Measurements.getMeasurements();
 
@@ -421,6 +471,10 @@ public class CoreWorkload extends Workload {
   @Override
   public void init(Properties p) throws WorkloadException {
     table = p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT);
+
+    // Rubble
+    twitterTrace = p.getProperty(TWITTER_TRACE_PROPERTY, TWITTER_TRACE_DEFAULT);
+    // Rubble
 
     fieldcount =
         Long.parseLong(p.getProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_PROPERTY_DEFAULT));
@@ -842,7 +896,7 @@ public class CoreWorkload extends Workload {
       String dbkey = CoreWorkload.buildKeyName(keynum, zeropadding, orderedinserts);
 
       HashMap<String, ByteIterator> values = buildValues(dbkey);
-      ((DBWrapper)db).insert(table, dbkey, values, keynum);
+      ((DBWrapper)db).insert(table, dbkey, values, keynum, "");
     } finally {
       // transactioninsertkeysequence.acknowledge(keynum);
     }

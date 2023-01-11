@@ -129,7 +129,10 @@ public class ClientThread implements Runnable {
       sleepUntil(System.nanoTime() + randomMinorDelay);
     }
     try {
-      if (dotransactions) {
+      if (workload.getClass().equals(CoreWorkload.class) &&
+          ((CoreWorkload)workload).isTwitterWorkload()) {
+        ((CoreWorkload)workload).replayTrace(db, threadid, threadcount);
+      } else if (dotransactions) {
         long startTimeNanos = System.nanoTime();
 
         while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
