@@ -117,6 +117,12 @@ public class DBWrapper extends DB {
     return opsdone.intValue();
   }
 
+  // For read-modify-write ops
+  public void decreaseOpsDone() {
+    opsdone.accumulate(-1);
+    opssent.accumulate(-1);
+  }
+
   public void setClientIdx(int clientidx) {
     this.clientIdx = clientidx;
   }
