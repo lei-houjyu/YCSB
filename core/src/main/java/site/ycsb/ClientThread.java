@@ -24,6 +24,8 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
+import java.io.FileInputStream;
+import java.util.*;
 
 /**
  * A thread for executing transactions or data inserts to the database.
@@ -99,6 +101,26 @@ public class ClientThread implements Runnable {
     // [Rubble]
   }
 
+  // [Rubble]
+  public void replayTrace(String entry, Random rand) {
+    String[] request   = entry.split(",");
+    String   key       = request[1];
+    int      valueByte = Integer.parseInt(request[3]);
+    String   operation = request[5];
+
+    if (operation.equals("set") || !dotransactions) {
+      byte[] bytes = new byte[valueByte];
+      rand.nextBytes(bytes);
+      String val = new String(bytes);
+      ((DBWrapper)db).insert("usertable", key, null, 0, val);
+    } else if (operation.equals("get")) {
+      ((DBWrapper)db).read("usertable", key, null, null);
+    } else {
+      System.out.println("Unsupported! " + operation);
+    }
+  }
+  // [Rubble]
+
   @Override
   public void run() {
     try {
@@ -129,9 +151,35 @@ public class ClientThread implements Runnable {
       sleepUntil(System.nanoTime() + randomMinorDelay);
     }
     try {
-      if (workload.getClass().equals(CoreWorkload.class) &&
-          ((CoreWorkload)workload).isTwitterWorkload()) {
-        ((CoreWorkload)workload).replayTrace(db, threadid, threadcount);
+      if (workload.getClass().equals(CoreWorkload.class) && ((CoreWorkload)workload).isTwitterWorkload()) {
+        String trace = ((CoreWorkload)workload).getTwitterTrace();
+        FileInputStream inputStream = new FileInputStream(trace);
+        Scanner sc = new Scanner(inputStream, "UTF-8");
+        Random rand = new Random();
+
+        long startTimeNanos = System.nanoTime();
+        int lineNumber = 0;
+
+        while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
+          if (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            if (lineNumber % threadcount == threadid) {
+              replayTrace(line, rand);
+              opsdone++;
+            }
+            lineNumber++;
+          }
+
+          throttleNanos(startTimeNanos);
+        }
+
+        sc.close();
+        inputStream.close();
+
+        for (int i = 0; i < shardNum; i++) {
+          ((DBWrapper)db).sendBatch(true, i);
+          ((DBWrapper)db).sendBatch(false, i);
+        }
       } else if (dotransactions) {
         long startTimeNanos = System.nanoTime();
 

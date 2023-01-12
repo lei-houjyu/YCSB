@@ -193,7 +193,7 @@ public class DBWrapper extends DB {
                 measurements.measure("INSERT" + suffix, (int)latency);
               }
               long keynum = reply.getReplies(i).getKeynum();
-              if (keynum != INVALID_KEYNUM) {
+              if (!workload.isTwitterWorkload() && keynum != INVALID_KEYNUM) {
                 workload.acknowledge(keynum);
               }
               break;
@@ -382,7 +382,8 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        // int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        int idx = Math.abs(key.hashCode()) % shardNum;
         readTypes[idx][readBatchSize[idx]] = OpType.GET;
         readKeys[idx][readBatchSize[idx]] = key;
         readBatchSize[idx]++;
@@ -521,7 +522,8 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        // int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        int idx = Math.abs(key.hashCode()) % shardNum;
         writeTypes[idx][writeBatchSize[idx]] = OpType.PUT;
         writeKeys[idx][writeBatchSize[idx]] = key;
         if (valueStr == "") {
