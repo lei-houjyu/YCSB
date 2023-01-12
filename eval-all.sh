@@ -19,11 +19,11 @@ if [ $rf -eq 2 ]; then
     if [ $shard_num -eq 2 ]; then
        # 2 shard 2 replica
         load_rate=90000
-        rate=(80000 90000 90000 160000)
+        rate=(80000 90000 90000 160000 11000 70000 50000)
     elif [ $shard_num -eq 4 ]; then
         # 4 shard 2 replica
         load_rate=100000
-        rate=(80000 120000 140000 210000)
+        rate=(80000 120000 140000 210000 30000 80000 60000)
     else
         echo "No rate found: $shard_num $rf"
         exit
@@ -32,11 +32,11 @@ elif [ $rf -eq 3 ]; then
     if [ $shard_num -eq 3 ]; then
         # 3 shard 3 replica
         load_rate=100000
-        rate=(80000 120000 120000 230000)
+        rate=(80000 120000 120000 230000 16000 80000 60000)
     elif [ $shard_num -eq 6 ]; then
         # 6 shard 3 replica
         load_rate=120000
-        rate=(90000 170000 190000 290000)
+        rate=(90000 170000 190000 290000 40000 90000 60000)
     else
         echo "No rate found: $shard_num $rf"
         exit
@@ -45,11 +45,11 @@ elif [ $rf -eq 4 ]; then
     if [ $shard_num -eq 4 ]; then
         # 4 shard 4 replica
         load_rate=110000
-        rate=(90000 150000 160000 300000 300000 90000 90000)
+        rate=(90000 150000 160000 300000 21000 90000 60000)
     elif [ $shard_num -eq 8 ]; then
         # 8 shard 4 replica
         load_rate=120000
-        rate=(90000 210000 250000 370000 370000 90000 90000)
+        rate=(90000 210000 250000 370000 50000 90000 60000)
     else
         echo "No rate found: $shard_num $rf"
         exit
