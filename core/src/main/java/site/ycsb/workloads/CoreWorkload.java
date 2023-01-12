@@ -23,7 +23,6 @@ import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.measurements.Measurements;
 
 import java.io.IOException;
-import java.io.FileInputStream;
 import java.util.*;
 
 /**
@@ -378,44 +377,8 @@ public class CoreWorkload extends Workload {
     return twitterTrace != TWITTER_TRACE_DEFAULT;
   }
 
-  public void replayTrace(DB db, int threadid, int threadcount) {
-    System.out.println("Replay Twitter trace in thread " + threadid);
-    FileInputStream inputStream = null;
-    Random rand = new Random();
-    Scanner sc = null;
-    try {
-      inputStream = new FileInputStream(twitterTrace);
-      sc = new Scanner(inputStream, "UTF-8");
-      int lineNumber = 0;
-      while (sc.hasNextLine()) {
-        String line = sc.nextLine();
-        if (lineNumber % threadcount == threadid) {
-          String[] request   = line.split(",");
-          String   key       = request[1];
-          int      valueByte = Integer.parseInt(request[3]);
-          String   operation = request[5];
-
-          switch (operation) {
-          case "get":
-            db.read(table, key, null, null);
-            break;
-          case "set":
-            byte[] bytes = new byte[valueByte];
-            rand.nextBytes(bytes);
-            String val = new String(bytes);
-            ((DBWrapper)db).insert(table, key, null, 0, val);
-            break;
-          default:
-            break;
-          }
-        }
-        lineNumber++;
-      }
-      sc.close();
-      inputStream.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  public String getTwitterTrace() {
+    return twitterTrace;
   }
   // [Rubble]
 
