@@ -14,6 +14,22 @@ suffix=$5
 
 workload=("a" "b" "c" "d" "e" "f" "g")
 
+# optane nodes
+if [ $rf -eq 2 ]; then
+    if [ $shard_num -eq 2 ]; then
+       # 2 shard 2 replica
+        load_rate=90000
+        rate=(90000 170000 210000 240000)
+    elif [ $shard_num -eq 4 ]; then
+        # 4 shard 2 replica
+        load_rate=110000
+        rate=(100000 180000 220000 240000 40000 00000 70000)
+    else
+        echo "No rate found: $shard_num $rf"
+        exit
+    fi
+fi
+
 # r6525 nodes
 if [ $rf -eq 2 ]; then
     if [ $shard_num -eq 2 ]; then
