@@ -22,7 +22,7 @@ echo -e "\033[0;32m ${phase} ${workload} ${mode} \033[0m"
 
 replicator_port=50040
 shard_port=50050
-rubble_dir="/mnt/data/my_rocksdb/rubble"
+rubble_dir="/mnt/data/rocksdb/rubble"
 
 ssh_with_retry()
 {
