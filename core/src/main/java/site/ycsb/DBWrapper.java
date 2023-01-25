@@ -422,7 +422,8 @@ public class DBWrapper extends DB {
 
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(startkey.substring(4)) % shardNum);
+        // int idx = (int)(Long.parseLong(startkey.substring(4)) % shardNum);
+        int idx = Math.abs(startkey.hashCode()) % shardNum;
         readTypes[idx][readBatchSize[idx]] = OpType.SCAN;
         readKeys[idx][readBatchSize[idx]] = startkey;
         scanRecordCnts[idx][readBatchSize[idx]] = recordcount;
@@ -475,7 +476,8 @@ public class DBWrapper extends DB {
       long st = System.nanoTime();
       // [Rubble]: send this op to replicator
       try {
-        int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        // int idx = (int)(Long.parseLong(key.substring(4)) % shardNum);
+        int idx = Math.abs(key.hashCode()) % shardNum;
         writeTypes[idx][writeBatchSize[idx]] = OpType.UPDATE;
         writeKeys[idx][writeBatchSize[idx]] = key;
         writeVals[idx][writeBatchSize[idx]] = new String(serializeValues(values));
