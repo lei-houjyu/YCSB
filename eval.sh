@@ -41,6 +41,8 @@ launch_node()
     local addr=$3
     local sid=$4
     local rid=$5
+    local primary_ip=$6
+    
 
     local cgroup_opts="cgexec -g cpuset:rubble-cpu -g memory:rubble-mem"
     # gprof_opts="env HEAPPROFILE=${rubble_dir}/shard-${sid}.hprof LD_PRELOAD=/usr/local/lib/libtcmalloc.so"
@@ -48,7 +50,7 @@ launch_node()
     
     ssh_with_retry ${ip} "cd ${rubble_dir}; \
         ulimit -n 999999; ulimit -c unlimited; \
-        nohup sudo ${cgroup_opts} ${gprof_opts} ./db_node ${port} ${addr} ${sid} ${rid} ${rf} > ${log} 2>&1 &"
+        nohup sudo ${cgroup_opts} ${gprof_opts} ./db_node ${port} ${addr} ${sid} ${rid} ${rf} ${primary_ip} > ${log} 2>&1 &"
 }
 
 set_cgroups()
@@ -76,6 +78,7 @@ launch_all_nodes()
     for (( i=0; i<${shard_num}; i++ ))
     do
         local port=$(($shard_port + $i))
+	local primary_ip="10.10.1."$(($i % $rf + 2))":"$port
 
         for (( j=0; j<${rf}; j++ ))
         do
@@ -86,7 +89,7 @@ launch_all_nodes()
             else
                 local next_ip="10.10.1."$((($i + $j + 1) % $rf + 2))":"$port
             fi
-            launch_node $ip $port ${next_ip} $i $j
+            launch_node $ip $port ${next_ip} $i $j $primary_ip
         done
     done
 }
