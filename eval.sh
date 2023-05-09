@@ -103,7 +103,8 @@ record_stats()
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup sudo bash iostat.sh > /dev/null 2>&1 &"
         ssh_with_retry ${ip} "cd ${rubble_dir}; ps aux | grep -E './db_node' > pids.out;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
-        # ssh_with_retry ${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 250 > /dev/null 2>&1 &"
+        # ssh_with_retry ${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 600 > /dev/null 2>&1 &"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; nohup nethogs -t -a -v 3 > nethogs.out 2>&1 &"
     done
 }
 
@@ -159,7 +160,7 @@ massacre()
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
-        ssh_with_retry ${ip} "sudo killall db_node dstat iostat perf top;"
+        ssh_with_retry ${ip} "sudo killall db_node dstat iostat perf top python3 nethogs;"
     done
 }
 
@@ -172,12 +173,15 @@ process_results()
     cp replicator.out replicator-${suffix}.out
     python3 plot-thru.py ycsb-${suffix}.out 10 ${start_cut} ${end_cut}
 
+    runtime=`grep "RunTime(ms)" ycsb.out | tail -1 | cut -d ',' -f 3`
+
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 ${cpu_num};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 network-breakdown.py ${suffix} ${shard_num} ${runtime} > network_breakdown_${suffix}.out;"
     done
 }
 
@@ -190,6 +194,9 @@ update_workload_file() {
         sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
     done
 }
+
+# 0. clean the environment
+massacre
 
 # 1. start db instances
 launch_all_nodes
@@ -205,7 +212,7 @@ update_workload_file $shard_num
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
-    #relax_cpu
+    relax_cpu
 
     bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
