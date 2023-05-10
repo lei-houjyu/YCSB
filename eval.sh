@@ -105,6 +105,7 @@ record_stats()
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup top -H -b -d 1 -w 512 > top.out 2>&1 &"
         # ssh_with_retry ${ip} "cd ${rubble_dir}; nohup bash perf.sh ${suffix} 0,2,4,6 600 > /dev/null 2>&1 &"
         ssh_with_retry ${ip} "cd ${rubble_dir}; nohup nethogs -t -a -v 3 > nethogs.out 2>&1 &"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; bash mark-load-end.sh ${shard_num} ${suffix};"
     done
 }
 
