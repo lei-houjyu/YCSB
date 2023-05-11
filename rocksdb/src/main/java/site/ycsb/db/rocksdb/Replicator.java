@@ -9,7 +9,6 @@ import io.grpc.stub.StreamObserver;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 
 import site.ycsb.*;
 import site.ycsb.RubbleKvStoreServiceGrpc.RubbleKvStoreServiceStub;
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.List;
 import java.util.ArrayList;
-// import java.util.Arrays;
 import java.sql.Timestamp;
 
 
@@ -53,6 +51,7 @@ public class Replicator {
   private static long needRestart = 0;
   private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L); 
   private final LongAccumulator maxThreads = new LongAccumulator(Long::sum, 0L);
+  private final Thread[] recoverThreads;
   // HEARTBEAT
   
   public Replicator() throws IOException {
@@ -69,13 +68,7 @@ public class Replicator {
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
     this.server = serverBuilder.build();
-    // HEARTBEAT
-    // this.replicationFactor = new int[shardNum];
-    // int replicaPerChain = Integer.parseInt(props.getProperty("replica", "3"));
-    // Arrays.fill(this.replicationFactor, replicaPerChain); // TODO: this is hard-coded
-    // this.healthStub = new ArrayList<>(shardNum);
-    // this.channels = new ArrayList<>(shardNum);
-    // HEARTBEAT
+    this.recoverThreads = new Thread[shardNum];
     for (int i = 0; i < shardNum; i++) {
       headNode[i] = props.getProperty("head"+i);
       tailNode[i] = props.getProperty("tail"+i);
@@ -84,34 +77,21 @@ public class Replicator {
       this.tailChannel[i] = ManagedChannelBuilder.forTarget(tailNode[i]).usePlaintext().build();
       this.headStub[i] = RubbleKvStoreServiceGrpc.newStub(this.headChannel[i]);
       this.tailStub[i] = RubbleKvStoreServiceGrpc.newStub(this.tailChannel[i]);
-      // HEARTBEAT
-      // this.healthStub.add(new ArrayList<RubbleKvStoreServiceBlockingStub>(replicationFactor[i]));
-      // this.channels.add(new ArrayList<ManagedChannel>(replicationFactor[i]));
-      // for(int j = 0; j < replicationFactor[i]; j++) {
-      //   // TODO: temporary fix on channel in 2 & 3 -node setup
-      //   if (j == 0) {
-      //     this.channels.get(i).add(headChannel[i]);
-      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.headChannel[i]));
-      //   } else if (j == replicationFactor[i]-1) {
-      //     this.channels.get(i).add(tailChannel[i]);
-      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(this.tailChannel[i]));
-      //   } else { // middle node
-      //     String middleNode = props.getProperty("middle"+(i+1)+"_"+j); // TMP FIX
-      //     ManagedChannel middleChan = ManagedChannelBuilder.forTarget(middleNode).usePlaintext().build(); 
-      //     this.channels.get(i).add(middleChan);
-      //     this.healthStub.get(i).add(RubbleKvStoreServiceGrpc.newBlockingStub(middleChan));
-      //   }
-      // }
-      // HEARTBEAT
+
+      // We only support tail recovery right now
+      // TODO: support head and middle failures
+      this.recoverThreads[i] = new Thread(new RecoverThread(i, tailNode[i]));
     }
   }
 
   public void start() throws IOException {
     server.start();
     LOGGER.info("Server started, listening on " + port);
-    // start heartbeat
-    // Thread thread = new Thread(new Ping());
-    // thread.start();
+
+    for (int i = 0; i < shardNum; i++) {
+      recoverThreads[i].start();
+    }
+
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -359,71 +339,59 @@ public class Replicator {
     }
   }
 
-  private class Ping implements Runnable {
-    private final int deadlineMs = 1000000; // [TODO] (cc4351) parameterize this
+  private class RecoverThread implements Runnable {
+    private final int sid;
+    private final String ip;
+
+    public RecoverThread(int sid, String ip) {
+      this.sid = sid;
+      int idx = ip.indexOf(':');
+      this.ip = ip.substring(0, idx); 
+    }
+
     public void run() {
-    // TODO: a better defined heart-beat frequency and deadline for RPC
-      int wait = 0;
-      while(true) {
-        for(int i = 0; i < shardNum; i++) {
-          for(int j = 0; j < replicationFactor[i]; j++) {
-            try {
-              LOGGER.info("[i]: " + i + ", [j]: " + j + " wait: " + wait + " :,)");
-              pulse(false, false, i, j);
-              Thread.sleep(500);
-            } catch(InterruptedException e) {
-              LOGGER.error("ping thread interrupted");
-            } catch (StatusRuntimeException e) {
-              onError(e, i, j);
-            }
-          }
-          wait++;
-        }
+      while (true) {
+        detect(true);
+        detect(false);
+        recover();
       }
     }
 
-    private void onError(StatusRuntimeException e, int shardId, int nodeId) {
-      LOGGER.error("ping failure on shard: " + shardId + ", node: " + nodeId + " " + e.toString());
-      // check which node failed
-      if (nodeId == 0) {
-        String currentTime = String.format("%1$TH:%1$TM:%1$TS", System.currentTimeMillis());
-        LOGGER.error("head failure at " + currentTime + " recovering with remaining "
-                      + (replicationFactor[shardId] - 1) + " nodes....");
-        // replicationFactor updated
-        if (--replicationFactor[shardId] <= 0) {
-          LOGGER.error("violating assumption of t-1 failure, shutting down...");
-          System.exit(1);
-        }
-        // headStub updated & update healthStub
-        // TODO: synchronization issue and locking
-        Replicator.healthStub.get(shardId).remove(nodeId);
-        Replicator.channels.get(shardId).remove(nodeId);
+    private void detect(boolean alive) {
+      try{
+        String neg = alive ? "" : "!";
 
-        Replicator.headStub[shardId] = RubbleKvStoreServiceGrpc.newStub(Replicator.channels.get(shardId).get(0));
-        // Replicator.needRestart = observerAccumulator.longValue() + 1;
-        Replicator.needRestart = maxThreads.longValue();
-        System.out.println("[Restart times]: " + needRestart);
+        String cmd = "ssh root@" + ip + " " +
+            "\"while true; do " +
+            "    if " + neg + " ps aux | grep 'db_node 5005" + sid + "' | grep -v grep > /dev/null; then " + 
+            "      break; " +
+            "    fi; " +
+            "    sleep 1; " +
+            "done\"";
 
-        // ping the node s.t. it will update the config
-        pulse(true, true, shardId, 0);
-        System.out.println("[Ops sent]: " + opssent.get());
-      } else { // MIDDLE/TAIL NODE FAILURE
-        LOGGER.error("middle node or tail node failure: shutdown...");
-        System.exit(1);
+        System.out.println("Detecting " + cmd);
+
+        ProcessBuilder builder = new ProcessBuilder("sh", "-c", cmd);
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
+
+        // BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        // String line;
+        // StringBuilder output = new StringBuilder();
+        // while ((line = reader.readLine()) != null) {
+        //   System.out.println(line);
+        // }
+        
+        int exitCode = process.waitFor();
+
+        System.out.println("Detected shard " + sid + " alive " + alive + " on " + ip + " with code " + exitCode);
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
       }
     }
-    
-    // recovery heartbeat
-    private Empty pulse(boolean isAction, boolean isPrimary, 
-                      int shardId, int nodeId) throws StatusRuntimeException{
-      
-      PingRequest request = PingRequest.newBuilder()
-                                        .setIsAction(isAction)
-                                        .setIsPrimary(isPrimary)
-                                        .build();
-      return Replicator.healthStub.get(shardId).get(nodeId)
-                        .withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
-                        .pulse(request);
+
+    private void recover() {
+
     }
   }
 }
