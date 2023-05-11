@@ -68,6 +68,7 @@ public class Replicator {
     this.observerMap = new StreamObserver[shardNum][clientNum][2];
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
+    serverBuilder.maxInboundMessageSize(128 * 1024 * 1024);
     this.server = serverBuilder.build();
     // HEARTBEAT
     // this.replicationFactor = new int[shardNum];
