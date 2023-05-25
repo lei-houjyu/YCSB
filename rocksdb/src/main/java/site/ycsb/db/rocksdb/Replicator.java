@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.List;
-import java.util.ArrayList;
 import java.sql.Timestamp;
 
 
@@ -47,7 +46,6 @@ public class Replicator {
   // HEARTBEAT
   private static List<List<ManagedChannel>> channels;
   private static int[] replicationFactor;
-  private static List<List<RubbleKvStoreServiceBlockingStub>> healthStub;
   private static long needRestart = 0;
   private final LongAccumulator opssent = new LongAccumulator(Long::sum, 0L); 
   private final LongAccumulator maxThreads = new LongAccumulator(Long::sum, 0L);
@@ -63,7 +61,6 @@ public class Replicator {
     this.tailChannel = new ManagedChannel[shardNum];
     this.headStub = new RubbleKvStoreServiceStub[shardNum];
     this.tailStub = new RubbleKvStoreServiceStub[shardNum];
-    this.healthStub = new ArrayList<>(shardNum);
     this.observerMap = new StreamObserver[shardNum][clientNum][2];
     this.port = Integer.parseInt(props.getProperty("port"));
     ServerBuilder serverBuilder = ServerBuilder.forPort(port).addService(new RubbleKvStoreService());
@@ -340,13 +337,20 @@ public class Replicator {
   }
 
   private class RecoverThread implements Runnable {
+    private final int rf;
     private final int sid;
     private final String ip;
+    private ManagedChannel newTailChannel = null;
+    private ManagedChannel newHeadChannel = null;
+    private RubbleKvStoreServiceBlockingStub newTailStub = null;
+    private RubbleKvStoreServiceBlockingStub newHeadStub = null;
+
 
     public RecoverThread(int sid, String ip) {
       this.sid = sid;
       int idx = ip.indexOf(':');
       this.ip = ip.substring(0, idx); 
+      this.rf = Integer.parseInt(Replicator.props.getProperty("replica"));
     }
 
     public void run() {
@@ -374,13 +378,6 @@ public class Replicator {
         ProcessBuilder builder = new ProcessBuilder("sh", "-c", cmd);
         builder.redirectErrorStream(true);
         Process process = builder.start();
-
-        // BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        // String line;
-        // StringBuilder output = new StringBuilder();
-        // while ((line = reader.readLine()) != null) {
-        //   System.out.println(line);
-        // }
         
         int exitCode = process.waitFor();
 
@@ -390,8 +387,110 @@ public class Replicator {
       }
     }
 
-    private void recover() {
+    private void initStub() {
+      if (newTailChannel == null) {
+        String newTailAddr = getAddr(rf - 2);
+        newTailChannel = ManagedChannelBuilder.forTarget(newTailAddr).usePlaintext().build();
+      }
+      if (newTailStub == null) {
+        newTailStub = RubbleKvStoreServiceGrpc.newBlockingStub(newTailChannel);
+      }
+      if (newHeadChannel == null) {
+        String newHeadAddr = Replicator.props.getProperty("head"+sid);
+        newHeadChannel = ManagedChannelBuilder.forTarget(newHeadAddr).usePlaintext().build();
+      }
+      if (newHeadStub == null) {
+        newHeadStub = RubbleKvStoreServiceGrpc.newBlockingStub(newHeadChannel);
+      }
+    }
 
+    private void recover() {
+      initStub();
+      removeTail();
+      insertTail();
+    }
+
+    String getAddr(int rid) {
+      String a = "10.10.1." + (2 + (sid + rid) % rf);
+      String p = "5005" + sid;
+
+      if (rid == 0) {
+        System.out.println("[getPrimaryAddr] " + a + ":" + p);
+      } else if (rid == rf - 2) {
+        System.out.println("[getNewTailAddr] " + a + ":" + p);
+      } else {
+        System.err.println("Should not reach here: sid = " + sid + " rid = " + rid);
+      }
+      return a + ":" + p;
+    }
+
+    private void removeTail() {
+      // 0. Prepare the recover message
+      RecoverRequest request = RecoverRequest.newBuilder()
+          .setAction(Action.REMOVE_TAIL)
+          .setMemId(-1)
+          .build();
+
+      // 1. Tell the second last node to be the new tail
+      newTailStub.recover(request);
+      System.out.println("[removeTail] Tell new tail to remove the failed tail");
+
+      // 2. Tell the primary not to ship SST to the old tail
+      newHeadStub.recover(request);
+      System.out.println("[removeTail] Tell new head to remove the failed tail");
+    }
+
+    private void launchTail() {
+      try {        
+        String dbDir = "/mnt/data/db/shard-" + sid;
+        String rubbleDir = "/mnt/data/rocksdb/rubble";
+        String cgroupOpts = "cgexec -g cpuset:rubble-cpu -g memory:rubble-mem";
+        String log = "shard-" + sid + ".out";
+        String listenPort = "5005" + sid;
+        String targetAddr = "10.10.1.1:50040";
+        String primaryIp = getAddr(0);
+        int rid = rf - 1;
+
+        String cmd = "ssh root@" + ip + " " +
+            "\"cd " + dbDir + "; " +
+            "rm -rf db/* sst_dir/* shard-" + sid + ".out; " +
+            "cd " + rubbleDir + "; " +
+            "rm -rf log/* core*; " +
+            "ulimit -n 999999; ulimit -c unlimited; " +
+            "nohup sudo " + cgroupOpts + 
+            " ./db_node " + listenPort + " " + targetAddr + " " + sid + " " + rid + " " + rf + " " + primaryIp + 
+            " > " + log + " 2>&1 &\"";
+
+        System.out.println("Launching new tail " + cmd);
+
+        ProcessBuilder builder = new ProcessBuilder("sh", "-c", cmd);
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
+        
+        int exitCode = process.waitFor();
+
+        System.out.println("Launched new tail for shard " + sid + " on " + ip + " with code " + exitCode);
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
+    private void insertTail() {
+      // 0. Prepare the recover message
+      RecoverRequest request = RecoverRequest.newBuilder()
+          .setAction(Action.INSERT_TAIL)
+          .setMemId(-1)
+          .build();
+
+      // 1. Launch a fresh node as the new tail
+      launchTail();
+
+      // 2. Tell the old tail to sync with the new tail
+      newTailStub.recover(request);
+      System.out.println("[insertTail] Tell old tail to insert the new tail");
+
+      // 3. Tell the primary to sync the SST bit map
+      // newHeadStub.recover(request);
     }
   }
 }

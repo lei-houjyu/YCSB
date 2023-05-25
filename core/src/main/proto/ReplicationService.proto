@@ -18,7 +18,7 @@ service RubbleKvStoreService {
     // used by the tail node to send the true rely to the replicator
     rpc SendReply(stream OpReply) returns (stream Reply){}
 
-    rpc Pulse(PingRequest)  returns (Empty){}
+    rpc Recover(RecoverRequest) returns (Empty) {}
 }
 
 enum OpType {
@@ -83,16 +83,23 @@ message Reply{
 
 message SyncRequest {
     // a json string of args
-    string  args = 1;
+    string args = 1;
+    int32 rid = 2;
 }
 
 message SyncReply {
     string message = 1;
 }
 
-message PingRequest {
-    bool isAction = 1;
-    bool isPrimary = 2;
+enum Action {
+    REMOVE_TAIL = 0;
+    INSERT_TAIL = 1;
+    SYNC_TAIL = 2;
+}
+
+message RecoverRequest {
+    Action action = 1;
+    uint64 mem_id = 2;
 }
 
 message Empty {}
